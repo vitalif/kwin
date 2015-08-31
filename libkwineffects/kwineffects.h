@@ -59,6 +59,12 @@ class QMatrix4x4;
  **/
 Q_DECLARE_LOGGING_CATEGORY(KWINEFFECTS);
 
+namespace KWayland {
+    namespace Server {
+        class SurfaceInterface;
+    }
+}
+
 namespace KWin
 {
 
@@ -1638,6 +1644,11 @@ class KWINEFFECTS_EXPORT EffectWindow : public QObject
      * @since 5.0
      **/
     Q_PROPERTY(bool skipsCloseAnimation READ skipsCloseAnimation)
+
+    /**
+     * 
+     */
+    Q_PROPERTY(KWayland::Server::SurfaceInterface *surfaceInterface READ surfaceInterface)
 public:
     /**  Flags explaining why painting should be disabled  */
     enum {
@@ -1869,6 +1880,11 @@ public:
      * @since 5.0
      **/
     bool skipsCloseAnimation() const;
+
+    /**
+     * @since 5.5
+     */
+    KWayland::Server::SurfaceInterface *surfaceInterface() const;
 
     /**
      * Can be used to by effects to store arbitrary data in the EffectWindow.

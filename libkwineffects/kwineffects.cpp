@@ -42,6 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <assert.h>
 
+#include <KWayland/Server/surface_interface.h>
+
 #ifdef KWIN_HAVE_XRENDER_COMPOSITING
 #include <xcb/xfixes.h>
 #endif
@@ -698,6 +700,7 @@ EffectsHandler* effects = nullptr;
 EffectWindow::EffectWindow(QObject *parent)
     : QObject(parent)
 {
+    qRegisterMetaType<KWayland::Server::SurfaceInterface *>("KWayland::Server::SurfaceInterface *");
 }
 
 EffectWindow::~EffectWindow()
@@ -744,6 +747,7 @@ WINDOW_HELPER(bool, hasOwnShape, "shaped")
 WINDOW_HELPER(QString, windowRole, "windowRole")
 WINDOW_HELPER(QStringList, activities, "activities")
 WINDOW_HELPER(bool, skipsCloseAnimation, "skipsCloseAnimation")
+WINDOW_HELPER(KWayland::Server::SurfaceInterface *, surfaceInterface, "surfaceInterface")
 
 QString EffectWindow::windowClass() const
 {

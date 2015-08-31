@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KWayland/Server/qtsurfaceextension_interface.h>
 #include <KWayland/Server/seat_interface.h>
 #include <KWayland/Server/shadow_interface.h>
+#include <KWayland/Server/blur_interface.h>
 #include <KWayland/Server/shell_interface.h>
 
 // Qt
@@ -184,6 +185,9 @@ void WaylandServer::init(const QByteArray &socketName)
     );
     auto shadowManager = m_display->createShadowManager(m_display);
     shadowManager->create();
+
+    auto blurManager = m_display->createBlurManager(m_display);
+    blurManager->create();
 }
 
 void WaylandServer::initWorkspace()

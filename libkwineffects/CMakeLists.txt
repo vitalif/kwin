@@ -23,6 +23,7 @@ target_link_libraries(kwinxrenderutils
         XCB::XCB
         XCB::XFIXES
         XCB::RENDER
+        KF5::WaylandServer
     )
 
 set_target_properties(kwinxrenderutils PROPERTIES

@@ -19,12 +19,17 @@
  */
 
 #include "blur.h"
+#include "effects.h"
 #include "blurshader.h"
 // KConfigSkeleton
 #include "blurconfig.h"
 
 #include <QMatrix4x4>
 #include <QLinkedList>
+
+#include <KWayland/Server/surface_interface.h>
+#include <KWayland/Server/blur_interface.h>
+#include <KWayland/Server/shadow_interface.h>
 
 namespace KWin
 {
@@ -109,6 +114,13 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
         }
     }
 
+    KWayland::Server::SurfaceInterface *surf = w->surfaceInterface();
+    qWarning()<<"Surface / Blur / Shadow"<<surf<<surf->blur()<<surf->shadow();
+
+    if (surf && surf->blur()) {
+        region = surf->blur()->region();
+    }
+
     if (region.isEmpty() && !value.isNull()) {
         // Set the data to a dummy value.
         // This is needed to be able to distinguish between the value not
@@ -120,11 +132,23 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
 
 void BlurEffect::slotWindowAdded(EffectWindow *w)
 {
+    KWayland::Server::SurfaceInterface *surf = w->surfaceInterface();
+
+    if (surf) {
+        m_blurChangedConnection = connect(surf, &KWayland::Server::SurfaceInterface::blurChanged, this, [this, w] () {
+
+            if (w) {
+                updateBlurRegion(w);
+            }
+        });
+    }
     updateBlurRegion(w);
 }
 
 void BlurEffect::slotWindowDeleted(EffectWindow *w)
 {
+    disconnect(m_blurChangedConnection);
+
     if (windows.contains(w)) {
         windows.remove(w);
     }

@@ -97,6 +97,7 @@ private:
 
     QHash< const EffectWindow*, BlurWindowInfo > windows;
     typedef QHash<const EffectWindow*, BlurWindowInfo>::iterator CacheEntry;
+    QMetaObject::Connection m_blurChangedConnection;
 };
 
 inline
