@@ -39,6 +39,11 @@ static const QByteArray s_blurAtomName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEH
 
 BlurEffect::BlurEffect()
 {
+    //FIXME: can this be shared?
+    /*KWayland::Server::Display *display = new KWayland::Server::Display(this);
+    auto blurManager = display->createBlurManager(display);
+    blurManager->create();*/
+
     shader = BlurShader::create();
 
     // Offscreen texture that's used as the target for the horizontal blur pass
@@ -116,14 +121,14 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
     }
 
     KWayland::Server::SurfaceInterface *surf = w->surfaceInterface();
-    qWarning()<<"Surface / Blur / Shadow"<<surf<<surf->blur()<<surf->shadow()<<w->width()<<w->height();
 
     if (surf && surf->blur()) {
         region = surf->blur()->region();
-        qWarning()<<"REGIONNNN"<<region;
     }
 
-    if (region.isEmpty() && !value.isNull()) {
+    //!value.isNull() full window in X11 case, surf->blur()
+    //valid, full window in wayland case
+    if (region.isEmpty() && (!value.isNull() || surf->blur())) {
         // Set the data to a dummy value.
         // This is needed to be able to distinguish between the value not
         // being set, and being set to an empty region.
