@@ -62,6 +62,7 @@ Q_DECLARE_LOGGING_CATEGORY(KWINEFFECTS);
 namespace KWayland {
     namespace Server {
         class SurfaceInterface;
+        class Display;
     }
 }
 
@@ -1090,6 +1091,11 @@ public:
 
     virtual xcb_connection_t *xcbConnection() const = 0;
     virtual xcb_window_t x11RootWindow() const = 0;
+
+    /**
+     * @since 5.5
+     */
+    virtual KWayland::Server::Display *waylandDisplay() const = 0;
 
     /**
      * @return @ref KConfigGroup which holds given effect's config options

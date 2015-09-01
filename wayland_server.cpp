@@ -185,9 +185,6 @@ void WaylandServer::init(const QByteArray &socketName)
     );
     auto shadowManager = m_display->createShadowManager(m_display);
     shadowManager->create();
-
-    auto blurManager = m_display->createBlurManager(m_display);
-    blurManager->create();
 }
 
 void WaylandServer::initWorkspace()

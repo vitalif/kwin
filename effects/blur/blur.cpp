@@ -40,9 +40,9 @@ static const QByteArray s_blurAtomName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEH
 BlurEffect::BlurEffect()
 {
     //FIXME: can this be shared?
-    /*KWayland::Server::Display *display = new KWayland::Server::Display(this);
+    KWayland::Server::Display *display = effects->waylandDisplay();
     auto blurManager = display->createBlurManager(display);
-    blurManager->create();*/
+    blurManager->create();
 
     shader = BlurShader::create();
 
