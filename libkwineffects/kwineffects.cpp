@@ -700,7 +700,6 @@ EffectsHandler* effects = nullptr;
 EffectWindow::EffectWindow(QObject *parent)
     : QObject(parent)
 {
-    qRegisterMetaType<KWayland::Server::SurfaceInterface *>("KWayland::Server::SurfaceInterface *");
 }
 
 EffectWindow::~EffectWindow()
@@ -747,7 +746,7 @@ WINDOW_HELPER(bool, hasOwnShape, "shaped")
 WINDOW_HELPER(QString, windowRole, "windowRole")
 WINDOW_HELPER(QStringList, activities, "activities")
 WINDOW_HELPER(bool, skipsCloseAnimation, "skipsCloseAnimation")
-WINDOW_HELPER(KWayland::Server::SurfaceInterface *, surfaceInterface, "surfaceInterface")
+WINDOW_HELPER(KWayland::Server::SurfaceInterface *, surface, "surface")
 
 QString EffectWindow::windowClass() const
 {

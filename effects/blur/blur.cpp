@@ -39,10 +39,10 @@ static const QByteArray s_blurAtomName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEH
 
 BlurEffect::BlurEffect()
 {
-    //FIXME: can this be shared?
     KWayland::Server::Display *display = effects->waylandDisplay();
-    auto blurManager = display->createBlurManager(display);
-    blurManager->create();
+    if (display) {
+        display->createBlurManager(this)->create();
+    }
 
     shader = BlurShader::create();
 
@@ -120,7 +120,7 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
         }
     }
 
-    KWayland::Server::SurfaceInterface *surf = w->surfaceInterface();
+    KWayland::Server::SurfaceInterface *surf = w->surface();
 
     if (surf && surf->blur()) {
         region = surf->blur()->region();
@@ -139,7 +139,7 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
 
 void BlurEffect::slotWindowAdded(EffectWindow *w)
 {
-    KWayland::Server::SurfaceInterface *surf = w->surfaceInterface();
+    KWayland::Server::SurfaceInterface *surf = w->surface();
 
     if (surf) {
         windows[w].blurChangedConnection = connect(surf, &KWayland::Server::SurfaceInterface::blurChanged, this, [this, w] () {
@@ -156,9 +156,6 @@ void BlurEffect::slotWindowDeleted(EffectWindow *w)
 {
     if (windows.contains(w)) {
         disconnect(windows[w].blurChangedConnection);
-    }
-
-    if (windows.contains(w)) {
         windows.remove(w);
     }
 }

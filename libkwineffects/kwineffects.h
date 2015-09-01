@@ -1093,6 +1093,8 @@ public:
     virtual xcb_window_t x11RootWindow() const = 0;
 
     /**
+     * Interface to the Wayland display: this is relevant only
+     * on Wayland, on X11 it will be nullptr
      * @since 5.5
      */
     virtual KWayland::Server::Display *waylandDisplay() const = 0;
@@ -1652,9 +1654,10 @@ class KWINEFFECTS_EXPORT EffectWindow : public QObject
     Q_PROPERTY(bool skipsCloseAnimation READ skipsCloseAnimation)
 
     /**
-     * 
+     * Interface to the corresponding wayland surface.
+     * relevant only in Wayland, on X11 it will be nullptr
      */
-    Q_PROPERTY(KWayland::Server::SurfaceInterface *surfaceInterface READ surfaceInterface)
+    Q_PROPERTY(KWayland::Server::SurfaceInterface *surface READ surface)
 public:
     /**  Flags explaining why painting should be disabled  */
     enum {
@@ -1890,7 +1893,7 @@ public:
     /**
      * @since 5.5
      */
-    KWayland::Server::SurfaceInterface *surfaceInterface() const;
+    KWayland::Server::SurfaceInterface *surface() const;
 
     /**
      * Can be used to by effects to store arbitrary data in the EffectWindow.
