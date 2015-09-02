@@ -128,7 +128,7 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
 
     //!value.isNull() full window in X11 case, surf->blur()
     //valid, full window in wayland case
-    if (region.isEmpty() && (!value.isNull() || surf->blur())) {
+    if (region.isEmpty() && (!value.isNull() || (surf && surf->blur()))) {
         // Set the data to a dummy value.
         // This is needed to be able to distinguish between the value not
         // being set, and being set to an empty region.
