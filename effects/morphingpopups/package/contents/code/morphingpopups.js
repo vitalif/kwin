@@ -19,24 +19,70 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 /*global effect, effects, animate, animationTime, Effect*/
 var morphingEffect = {
-    duration: animationTime(250),
+    duration: animationTime(2150),
     loadConfig: function () {
         "use strict";
-        morphingEffect.duration = animationTime(250);
+        morphingEffect.duration = animationTime(150);
+    },
+    cleanup: function(window) {
+        "use strict";
+       /* if (window.moveAnimation) {
+            cancel(window.moveAnimation);
+            delete window.moveAnimation;
+        }
+        if (window.fadeAnimation) {
+            cancel(window.fadeAnimation);
+            delete window.fadeAnimation;
+        }*/
+        window.olderGeometry = undefined;
     },
     geometryChange: function (window, oldGeometry) {
         "use strict";
 
-
-        if (!window.oldGeometry) {
-        //    return;
+        //only tooltips
+        if (!window.tooltip) {
+            return;
         }
 
-        var newGeometry = window.geometry;
-        //window.oldGeometry = oldGeometry;
-        //window.olderGeometry = oldGeometry;
+        //WindowForceBackgroundContrastRole
+        window.setData(7, true);
+        //WindowForceBlurRole
+        //window.setData(5, true);
 
-        window.maximizeAnimation1 = animate({
+        var newGeometry = window.geometry;
+        if (window.olderGeometry !== undefined) {
+            oldGeometry = window.olderGeometry;
+        }
+        window.olderGeometry = window.oldGeometry;
+        window.oldGeometry = newGeometry;
+
+        var destinationX;
+        if (oldGeometry.x + oldGeometry.width == newGeometry.x + newGeometry.width) {
+            destinationX = 0;
+        } else {
+            destinationX = oldGeometry.x - newGeometry.x;
+        }
+
+        var destinationY;
+        if (oldGeometry.y + oldGeometry.height == newGeometry.y + newGeometry.height) {
+            destinationY = 0;
+        } else {
+            destinationY = oldGeometry.y - newGeometry.y;
+        }
+
+print("BBB"+window.moveAnimation);
+print("AAAA"+newGeometry.width+" "+oldGeometry.width)
+
+        if (window.moveAnimation) {
+            cancel(window.moveAnimation);
+            delete window.moveAnimation;
+        }
+        if (window.fadeAnimation) {
+            cancel(window.fadeAnimation);
+            delete window.fadeAnimation;
+        }
+
+        window.moveAnimation = animate({
             window: window,
             duration: morphingEffect.duration,
             animations: [{
@@ -56,13 +102,13 @@ var morphingEffect = {
                     value2: 0
                 },
                 from: {
-                    value1: oldGeometry.x - newGeometry.x - (newGeometry.width / 2 - oldGeometry.width / 2),
-                    value2: oldGeometry.y - newGeometry.y
+                    value1: destinationX,
+                    value2: destinationY
                 }
             }]
         });
-        if (1||!window.resize) {
-            window.maximizeAnimation2 =animate({
+        if (!window.resize) {
+            window.fadeAnimation = animate({
                 window: window,
                 duration: morphingEffect.duration,
                 animations: [{
@@ -72,11 +118,15 @@ var morphingEffect = {
                 }]
             });
         }
+
+        window.oldGeometry = window.geometry;
+        window.olderGeometry = oldGeometry;
     },
     init: function () {
         "use strict";
         effect.configChanged.connect(morphingEffect.loadConfig);
         effects.windowGeometryShapeChanged.connect(morphingEffect.geometryChange);
+        effect.animationEnded.connect(morphingEffect.cleanup);
     }
 };
 morphingEffect.init();
