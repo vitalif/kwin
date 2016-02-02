@@ -19,13 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 /*global effect, effects, animate, animationTime, Effect*/
 var morphingEffect = {
-    duration: animationTime(2150),
+    duration: animationTime(1150),
     loadConfig: function () {
         "use strict";
         morphingEffect.duration = animationTime(150);
     },
     cleanup: function(window) {
         "use strict";
+        //FIXME: this crashes badly?
        /* if (window.moveAnimation) {
             cancel(window.moveAnimation);
             delete window.moveAnimation;
@@ -44,34 +45,41 @@ var morphingEffect = {
             return;
         }
 
+        var newGeometry = window.geometry;
+
+        //only do the transition for near enough tooltips,
+        //don't cross the whole screen: ugly
+        if (Math.abs(newGeometry.x - oldGeometry.x) > newGeometry.width * 2 ||
+            Math.abs(newGeometry.y - oldGeometry.y) > newGeometry.height * 2) {
+            return;
+        }
+
         //WindowForceBackgroundContrastRole
         window.setData(7, true);
         //WindowForceBlurRole
-        //window.setData(5, true);
+        window.setData(5, true);
 
-        var newGeometry = window.geometry;
-        if (window.olderGeometry !== undefined) {
+         if (window.olderGeometry !== undefined) {
             oldGeometry = window.olderGeometry;
         }
         window.olderGeometry = window.oldGeometry;
         window.oldGeometry = newGeometry;
 
-        var destinationX;
+        var startX;
         if (oldGeometry.x + oldGeometry.width == newGeometry.x + newGeometry.width) {
-            destinationX = 0;
+            startX = (newGeometry.width - oldGeometry.width)/2;
         } else {
-            destinationX = oldGeometry.x - newGeometry.x;
+            startX = oldGeometry.x - newGeometry.x + (oldGeometry.width - newGeometry.width)/2
         }
 
-        var destinationY;
+        var startY;
         if (oldGeometry.y + oldGeometry.height == newGeometry.y + newGeometry.height) {
-            destinationY = 0;
+            startY = (newGeometry.height - oldGeometry.height)/2;
         } else {
-            destinationY = oldGeometry.y - newGeometry.y;
+            startY = oldGeometry.y - newGeometry.y + (oldGeometry.height - newGeometry.height)/2;
         }
 
-print("BBB"+window.moveAnimation);
-print("AAAA"+newGeometry.width+" "+oldGeometry.width)
+
 
         if (window.moveAnimation) {
             cancel(window.moveAnimation);
@@ -102,12 +110,16 @@ print("AAAA"+newGeometry.width+" "+oldGeometry.width)
                     value2: 0
                 },
                 from: {
-                    value1: destinationX,
-                    value2: destinationY
+                    value1: startX,
+                    value2: startY
                 }
             }]
         });
-        if (!window.resize) {
+
+        //if an actual resize didn't happen, the old pixmap is useless, let's
+        //not do a fade
+        if (window.geometry.width != oldGeometry.width ||
+            window.geometry.height != oldGeometry.height) {
             window.fadeAnimation = animate({
                 window: window,
                 duration: morphingEffect.duration,

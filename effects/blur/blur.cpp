@@ -432,6 +432,18 @@ void BlurEffect::drawWindow(EffectWindow *w, int mask, QRegion region, WindowPai
 
         const bool translated = data.xTranslation() || data.yTranslation();
         // let's do the evil parts - someone wants to blur behind a transformed window
+        const bool scaled = data.xScale() != 1 || data.yScale() != 1;
+        if (scaled) {
+            QTransform t;
+            const int shapeX = shape.boundingRect().x();
+            const int shapeY = shape.boundingRect().y();
+            t = t.scale(data.xScale(), data.yScale());
+            t = t.translate(-shapeX, -shapeY);
+            shape = t.map(shape);
+            shape = shape.translated(shapeX, shapeY);
+            shape = shape & region;
+        }
+
         if (translated) {
             shape = shape.translated(data.xTranslation(), data.yTranslation());
             shape = shape & region;

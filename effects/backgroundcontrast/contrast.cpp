@@ -375,11 +375,12 @@ void ContrastEffect::drawWindow(EffectWindow *w, int mask, QRegion region, Windo
         const bool scaled = data.xScale() != 1 || data.yScale() != 1;
         if (scaled) {
             QTransform t;
-            //t = t.translate(w->width(), 0);
-            //t = t.translate(w->width(), w->height());
+            const int shapeX = shape.boundingRect().x();
+            const int shapeY = shape.boundingRect().y();
             t = t.scale(data.xScale(), data.yScale());
-            t = t.translate(w->width(), 0);
+            t = t.translate(-shapeX, -shapeY);
             shape = t.map(shape);
+            shape = shape.translated(shapeX, shapeY);
             shape = shape & region;
         }
 
