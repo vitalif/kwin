@@ -58,11 +58,11 @@ var morphingEffect = {
             return;
         }
 
-        //don't resize it "too much"
-        if ((newGeometry.width / oldGeometry.width) > 2 ||
-            (newGeometry.width / oldGeometry.width) < 0.5 ||
-            (newGeometry.height / oldGeometry.height) > 2 ||
-            (newGeometry.height / oldGeometry.height) < 0.5) {
+        //don't resize it "too much", set as four times
+        if ((newGeometry.width / oldGeometry.width) > 4 ||
+            (newGeometry.width / oldGeometry.width) < 0.25 ||
+            (newGeometry.height / oldGeometry.height) > 4 ||
+            (newGeometry.height / oldGeometry.height) < 0.25) {
             return;
         }
 
