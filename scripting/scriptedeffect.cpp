@@ -344,6 +344,45 @@ QScriptValue kwinEffectCancel(QScriptContext *context, QScriptEngine *engine)
     return engine->newVariant(ok);
 }
 
+QScriptValue kwinEffectProgress(QScriptContext *context, QScriptEngine *engine)
+{
+    ScriptedEffect *effect = qobject_cast<ScriptedEffect*>(context->callee().data().toQObject());
+    if (context->argumentCount() != 1) {
+        context->throwError(QScriptContext::SyntaxError, QStringLiteral("Exactly one argument expected"));
+        return engine->undefinedValue();
+    }
+    QVariant v = context->argument(0).toVariant();
+    QList<quint64> animIds;
+    bool ok = false;
+    if (v.isValid()) {
+        quint64 animId = v.toULongLong(&ok);
+        if (ok)
+            animIds << animId;
+    }
+    if (!ok) { // may still be a variantlist of variants being quint64
+        QList<QVariant> list = v.toList();
+        if (!list.isEmpty()) {
+            foreach (const QVariant &vv, list) {
+                quint64 animId = vv.toULongLong(&ok);
+                if (ok)
+                    animIds << animId;
+            }
+            ok = !animIds.isEmpty();
+        }
+    }
+    if (!ok) {
+        context->throwError(QScriptContext::TypeError, QStringLiteral("Argument needs to be one or several quint64"));
+        return engine->undefinedValue();
+    }
+
+    float value = 0.0;
+    foreach (const quint64 &animId, animIds) {
+        value = engine->newVariant(effect->progress(animId)).toNumber();
+    }
+
+    return engine->newVariant(value);
+}
+
 QScriptValue effectWindowToScriptValue(QScriptEngine *eng, const KEffectWindowRef &window)
 {
     return eng->newQObject(window, QScriptEngine::QtOwnership,
@@ -488,6 +527,11 @@ bool ScriptedEffect::init(const QString &effectName, const QString &pathToScript
     QScriptValue cancelFunc = m_engine->newFunction(kwinEffectCancel);
     cancelFunc.setData(m_engine->newQObject(this));
     m_engine->globalObject().setProperty(QStringLiteral("cancel"), cancelFunc);
+
+    // progress...
+    QScriptValue progressFunc = m_engine->newFunction(kwinEffectProgress);
+    progressFunc.setData(m_engine->newQObject(this));
+    m_engine->globalObject().setProperty(QStringLiteral("progress"), progressFunc);
 
     QScriptValue ret = m_engine->evaluate(QString::fromUtf8(scriptFile.readAll()));
 

@@ -40,8 +40,8 @@ var morphingEffect = {
     geometryChange: function (window, oldGeometry) {
         "use strict";
 
-        //only tooltips
-        if (!window.tooltip) {
+        //only tooltips and notifications
+        if (!window.tooltip && !window.notification) {
             return;
         }
 
@@ -49,8 +49,8 @@ var morphingEffect = {
 
         //only do the transition for near enough tooltips,
         //don't cross the whole screen: ugly
-        if (Math.abs(newGeometry.x - oldGeometry.x) > newGeometry.width * 2 ||
-            Math.abs(newGeometry.y - oldGeometry.y) > newGeometry.height * 2) {
+        if (Math.abs(newGeometry.x - oldGeometry.x) > newGeometry.width * 4 ||
+            Math.abs(newGeometry.y - oldGeometry.y) > newGeometry.height * 4) {
             return;
         //Also don't animate very small steps
         } else if (Math.abs(newGeometry.x - oldGeometry.x) < 10 &&
@@ -71,29 +71,26 @@ var morphingEffect = {
         //WindowForceBlurRole
         window.setData(5, true);
 
-         if (window.olderGeometry !== undefined) {
+        if (window.olderGeometry !== undefined) {
             oldGeometry = window.olderGeometry;
         }
-        window.olderGeometry = window.oldGeometry;
+        if (window.oldGeometry !== undefined) {
+            window.olderGeometry = window.oldGeometry;
+        } else {
+            window.olderGeometry = oldGeometry;
+        }
         window.oldGeometry = newGeometry;
 
-        var startX;
-        if (oldGeometry.x + oldGeometry.width == newGeometry.x + newGeometry.width) {
-            startX = (newGeometry.width - oldGeometry.width)/2;
-        } else {
-            startX = oldGeometry.x - newGeometry.x + (oldGeometry.width - newGeometry.width)/2
-        }
-
-        var startY;
-        if (oldGeometry.y + oldGeometry.height == newGeometry.y + newGeometry.height) {
-            startY = (newGeometry.height - oldGeometry.height)/2;
-        } else {
-            startY = oldGeometry.y - newGeometry.y + (oldGeometry.height - newGeometry.height)/2;
-        }
-
-
-
+        var animProgress = 0;
         if (window.moveAnimation) {
+            animProgress = progress(window.moveAnimation);
+
+            //modify olderGeometry by the progress
+            oldGeometry.x = oldGeometry.x + (newGeometry.x - oldGeometry.x) * animProgress;
+            oldGeometry.y = oldGeometry.y + (newGeometry.y - oldGeometry.y) * animProgress;
+            oldGeometry.width = oldGeometry.width + (newGeometry.width - oldGeometry.width) * animProgress;
+            oldGeometry.height = oldGeometry.height + (newGeometry.height - oldGeometry.height) * animProgress;
+
             cancel(window.moveAnimation);
             delete window.moveAnimation;
         }
@@ -101,6 +98,21 @@ var morphingEffect = {
             cancel(window.fadeAnimation);
             delete window.fadeAnimation;
         }
+
+        var startX;
+        if (window.olderGeometry.x + window.olderGeometry.width == newGeometry.x + newGeometry.width) {
+            startX = (newGeometry.width - oldGeometry.width)/2;
+        } else {
+            startX = oldGeometry.x - newGeometry.x + (oldGeometry.width - newGeometry.width)/2
+        }
+
+        var startY;
+        if (window.olderGeometry.y + window.olderGeometry.height == newGeometry.y + newGeometry.height) {
+            startY = (newGeometry.height - oldGeometry.height)/2;
+        } else {
+            startY = oldGeometry.y - newGeometry.y + (oldGeometry.height - newGeometry.height)/2;
+        }
+
 
         window.moveAnimation = animate({
             window: window,

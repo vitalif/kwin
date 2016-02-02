@@ -247,6 +247,19 @@ bool AnimationEffect::cancel(quint64 animationId)
     return false;
 }
 
+float AnimationEffect::progress(quint64 animationId)
+{
+    Q_D(AnimationEffect);
+    for (AniMap::iterator entry = d->m_animations.begin(), mapEnd = d->m_animations.end(); entry != mapEnd; ++entry) {
+        for (QList<AniData>::iterator anim = entry->first.begin(), animEnd = entry->first.end(); anim != animEnd; ++anim) {
+            if (quint64(&(*anim)) == animationId) {
+                return progress(*anim);
+            }
+        }
+    }
+    return 0.0;
+}
+
 void AnimationEffect::prePaintScreen( ScreenPrePaintData& data, int time )
 {
     Q_D(AnimationEffect);

@@ -184,6 +184,13 @@ protected:
      * If you intend to run another animation on the (Deleted) window, you have to do that before cancelling the old animation (to keep the window around)
      */
     bool cancel(quint64 animationId);
+
+    /**
+     * @return the progress from a given animation, between 0 and 1
+     * @param the unique id for the animation
+     */
+    float progress(quint64 animationId);
+
     /**
      * Called if the transformed @enum Attribute is Generic. You should reimplement it if you transform this "Attribute".
      * You could use the meta information to eg. support more than one additional animations

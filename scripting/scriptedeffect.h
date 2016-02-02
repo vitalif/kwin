@@ -94,6 +94,7 @@ public Q_SLOTS:
     quint64 animate(KWin::EffectWindow *w, Attribute a, int ms, KWin::FPx2 to, KWin::FPx2 from = KWin::FPx2(), uint metaData = 0, QEasingCurve::Type curve = QEasingCurve::Linear, int delay = 0);
     quint64 set(KWin::EffectWindow *w, Attribute a, int ms, KWin::FPx2 to, KWin::FPx2 from = KWin::FPx2(), uint metaData = 0, QEasingCurve::Type curve = QEasingCurve::Linear, int delay = 0);
     bool cancel(quint64 animationId) { return AnimationEffect::cancel(animationId); }
+    float progress(quint64 animationId) { return AnimationEffect::progress(animationId); }
     virtual bool borderActivated(ElectricBorder border);
 
 Q_SIGNALS:
