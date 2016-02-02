@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 /*global effect, effects, animate, animationTime, Effect*/
 var morphingEffect = {
-    duration: animationTime(1150),
+    duration: animationTime(150),
     loadConfig: function () {
         "use strict";
         morphingEffect.duration = animationTime(150);
@@ -51,6 +51,18 @@ var morphingEffect = {
         //don't cross the whole screen: ugly
         if (Math.abs(newGeometry.x - oldGeometry.x) > newGeometry.width * 2 ||
             Math.abs(newGeometry.y - oldGeometry.y) > newGeometry.height * 2) {
+            return;
+        //Also don't animate very small steps
+        } else if (Math.abs(newGeometry.x - oldGeometry.x) < 10 &&
+            Math.abs(newGeometry.y - oldGeometry.y) < 10 ) {
+            return;
+        }
+
+        //don't resize it "too much"
+        if ((newGeometry.width / oldGeometry.width) > 2 ||
+            (newGeometry.width / oldGeometry.width) < 0.5 ||
+            (newGeometry.height / oldGeometry.height) > 2 ||
+            (newGeometry.height / oldGeometry.height) < 0.5) {
             return;
         }
 
