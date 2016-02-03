@@ -352,17 +352,18 @@ QScriptValue kwinEffectProgress(QScriptContext *context, QScriptEngine *engine)
         return engine->undefinedValue();
     }
     QVariant v = context->argument(0).toVariant();
-    QList<quint64> animIds;
+    QVector<quint64> animIds;
     bool ok = false;
     if (v.isValid()) {
         quint64 animId = v.toULongLong(&ok);
-        if (ok)
+        if (ok) {
             animIds << animId;
+        }
     }
     if (!ok) { // may still be a variantlist of variants being quint64
-        QList<QVariant> list = v.toList();
+        const QList<QVariant> list = v.toList();
         if (!list.isEmpty()) {
-            foreach (const QVariant &vv, list) {
+            for (auto vv : list) {
                 quint64 animId = vv.toULongLong(&ok);
                 if (ok)
                     animIds << animId;

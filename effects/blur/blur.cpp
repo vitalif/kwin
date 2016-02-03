@@ -440,11 +440,10 @@ void BlurEffect::drawWindow(EffectWindow *w, int mask, QRegion region, WindowPai
             t = t.scale(data.xScale(), data.yScale());
             t = t.translate(-shapeX, -shapeY);
             shape = t.map(shape);
-            shape = shape.translated(shapeX, shapeY);
+            shape = shape.translated(shapeX + data.xTranslation(), shapeY + data.yTranslation());
             shape = shape & region;
-        }
 
-        if (translated) {
+        } else if (translated) {
             shape = shape.translated(data.xTranslation(), data.yTranslation());
             shape = shape & region;
         }

@@ -45,7 +45,7 @@ var morphingEffect = {
         if (distance > (newGeometry.width + newGeometry.height) * 2) {
             return;
         //Also don't animate very small steps
-        } else if (distance < 10 ) {
+        } else if (distance < 10) {
             return;
         }
 
@@ -92,18 +92,17 @@ var morphingEffect = {
 
         var startX;
         if (window.olderGeometry.x + window.olderGeometry.width == newGeometry.x + newGeometry.width) {
-            startX = (newGeometry.width - oldGeometry.width)/2;
+            startX = (newGeometry.width - oldGeometry.width) / 2;
         } else {
-            startX = oldGeometry.x - newGeometry.x + (oldGeometry.width - newGeometry.width)/2
+            startX = oldGeometry.x - newGeometry.x + (oldGeometry.width - newGeometry.width) / 2
         }
 
         var startY;
         if (window.olderGeometry.y + window.olderGeometry.height == newGeometry.y + newGeometry.height) {
-            startY = (newGeometry.height - oldGeometry.height)/2;
+            startY = (newGeometry.height - oldGeometry.height) / 2;
         } else {
-            startY = oldGeometry.y - newGeometry.y + (oldGeometry.height - newGeometry.height)/2;
+            startY = oldGeometry.y - newGeometry.y + (oldGeometry.height - newGeometry.height) / 2;
         }
-
 
         window.moveAnimation = animate({
             window: window,
