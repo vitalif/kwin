@@ -26,15 +26,6 @@ var morphingEffect = {
     },
     cleanup: function(window) {
         "use strict";
-        //FIXME: this crashes badly?
-       /* if (window.moveAnimation) {
-            cancel(window.moveAnimation);
-            delete window.moveAnimation;
-        }
-        if (window.fadeAnimation) {
-            cancel(window.fadeAnimation);
-            delete window.fadeAnimation;
-        }*/
         window.olderGeometry = undefined;
     },
     geometryChange: function (window, oldGeometry) {
@@ -49,20 +40,20 @@ var morphingEffect = {
 
         //only do the transition for near enough tooltips,
         //don't cross the whole screen: ugly
-        if (Math.abs(newGeometry.x - oldGeometry.x) > newGeometry.width * 4 ||
-            Math.abs(newGeometry.y - oldGeometry.y) > newGeometry.height * 4) {
+        var distance = Math.abs(oldGeometry.x - newGeometry.x) + Math.abs(oldGeometry.y - newGeometry.y);
+
+        if (distance > (newGeometry.width + newGeometry.height) * 2) {
             return;
         //Also don't animate very small steps
-        } else if (Math.abs(newGeometry.x - oldGeometry.x) < 10 &&
-            Math.abs(newGeometry.y - oldGeometry.y) < 10 ) {
+        } else if (distance < 10 ) {
             return;
         }
 
         //don't resize it "too much", set as four times
         if ((newGeometry.width / oldGeometry.width) > 4 ||
-            (newGeometry.width / oldGeometry.width) < 0.25 ||
+            (oldGeometry.width / newGeometry.width) > 4 ||
             (newGeometry.height / oldGeometry.height) > 4 ||
-            (newGeometry.height / oldGeometry.height) < 0.25) {
+            (oldGeometry.height / newGeometry.height) > 4) {
             return;
         }
 
