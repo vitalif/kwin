@@ -384,6 +384,7 @@ void ContrastEffect::drawWindow(EffectWindow *w, int mask, QRegion region, Windo
             shape = shape.translated(shapeX + data.xTranslation(), shapeY + data.yTranslation());
             shape = shape & region;
 
+        //Only translated, not scaled
         } else if (translated) {
             shape = shape.translated(data.xTranslation(), data.yTranslation());
             shape = shape & region;
