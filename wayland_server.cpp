@@ -192,6 +192,15 @@ bool WaylandServer::init(const QByteArray &socketName, InitalizationFlags flags)
     connect(m_xdgShell, &XdgShellInterface::surfaceCreated, this, &WaylandServer::createSurface<XdgShellSurfaceInterface>);
     // TODO: verify seat and serial
     connect(m_xdgShell, &XdgShellInterface::popupCreated, this, &WaylandServer::createSurface<XdgShellPopupInterface>);
+
+    m_xdgShell6 = m_display->createXdgShell(XdgShellInterfaceVersion::UnstableV6, m_display);
+    m_xdgShell6->create();
+    //DAVE, connect to new signal toplevel created instead?
+    connect(m_xdgShell6, &XdgShellInterface::surfaceCreated, this, &WaylandServer::createSurface<XdgShellSurfaceInterface>);
+    // TODO: verify seat and serial
+    connect(m_xdgShell6, &XdgShellInterface::popupCreated, this, &WaylandServer::createSurface<XdgShellPopupInterface>);
+
+
     m_display->createShm();
     m_seat = m_display->createSeat(m_display);
     m_seat->create();

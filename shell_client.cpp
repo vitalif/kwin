@@ -237,6 +237,7 @@ void ShellClient::init()
             }
             m_xdgShellSurface->configure(xdgSurfaceStates());
         };
+        configure();
         connect(this, &AbstractClient::activeChanged, this, configure);
         connect(this, &AbstractClient::clientStartUserMovedResized, this, configure);
         connect(this, &AbstractClient::clientFinishUserMovedResized, this, configure);
