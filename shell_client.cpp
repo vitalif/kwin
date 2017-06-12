@@ -242,6 +242,19 @@ void ShellClient::init()
         connect(this, &AbstractClient::clientStartUserMovedResized, this, configure);
         connect(this, &AbstractClient::clientFinishUserMovedResized, this, configure);
     } else if (m_xdgShellPopup) {
+        qDebug() << "setting up popup";
+        //TODO - should probably check the parent had focus and whatever
+        //can maybe just call setFocus() or something
+        connect(m_xdgShellPopup, &XdgShellPopupInterface::grabbed, this, [this](SeatInterface *seat, quint32 serial) {
+            Q_UNUSED(serial)
+            qDebug() << "grabbed!";
+            seat->setFocusedPointerSurface(surface());
+        });
+
+        QRect position = QRect(m_xdgShellPopup->transientOffset(), m_xdgShellPopup->initialSize());
+        qDebug() << "new popup at " << position;
+        m_xdgShellPopup->configure(position);
+
         connect(m_xdgShellPopup, &XdgShellPopupInterface::destroyed, this, &ShellClient::destroyClient);
     }
 
@@ -1516,6 +1529,9 @@ void ShellClient::popupDone()
 {
     if (m_shellSurface) {
         m_shellSurface->popupDone();
+    }
+    if (m_xdgShellPopup) {
+        m_xdgShellPopup->popupDone();
     }
 }
 
