@@ -173,6 +173,11 @@ void ShellClient::initSurface(T *shellSurface)
     connect(shellSurface, &T::fullscreenChanged, this, &ShellClient::clientFullScreenChanged);
 
     connect(shellSurface, &T::transientForChanged, this, &ShellClient::setTransient);
+
+    connect(static_cast<XdgShellInterface *>(m_xdgShellSurface->global()), &XdgShellInterface::pongReceived, 
+            m_xdgShellSurface, &XdgShellSurfaceInterface::close);
+    connect(static_cast<XdgShellInterface *>(m_xdgShellSurface->global()), &XdgShellInterface::pingTimeout, 
+            this, &ShellClient::killWindow);
 }
 
 void ShellClient::init()
@@ -579,13 +584,10 @@ QString ShellClient::caption(bool full, bool stripped) const
 void ShellClient::closeWindow()
 {
     if (m_xdgShellSurface && isCloseable()) {
-        m_xdgShellSurface->close();
-        return;
-    }
-    if (m_qtExtendedSurface && isCloseable()) {
+        static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping();
+    } else if (m_qtExtendedSurface && isCloseable()) {
         m_qtExtendedSurface->close();
-    }
-    if (m_internalWindow) {
+    } else if (m_internalWindow) {
         m_internalWindow->hide();
     }
 }
