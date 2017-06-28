@@ -178,6 +178,7 @@ void ShellClient::initSurface(T *shellSurface)
             this, [this](qint32 serial){
                 auto it = m_pingSerials.find(serial);
                 if (it != m_pingSerials.end()) {
+                    setUnresponsive(false);
                     if (it.value() == CloseWindow && m_xdgShellSurface) {
                         m_xdgShellSurface->close();
                     }
