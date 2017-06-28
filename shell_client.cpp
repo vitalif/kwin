@@ -178,7 +178,6 @@ void ShellClient::initSurface(T *shellSurface)
             this, [this](qint32 serial){
                 auto it = m_pingSerials.find(serial);
                 if (it != m_pingSerials.end()) {
-                    qWarning()<<"PONGATO"<<serial<<it.value();
                     if (it.value() == CloseWindow && m_xdgShellSurface) {
                         m_xdgShellSurface->close();
                     }
@@ -610,7 +609,6 @@ void ShellClient::closeWindow()
     if (m_xdgShellSurface && isCloseable()) {
         const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping();
         m_pingSerials.insert(pingSerial, CloseWindow);
-        qWarning()<<"STO A PINGA'"<<pingSerial;
     } else if (m_qtExtendedSurface && isCloseable()) {
         m_qtExtendedSurface->close();
     } else if (m_internalWindow) {
