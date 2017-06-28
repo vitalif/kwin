@@ -175,9 +175,33 @@ void ShellClient::initSurface(T *shellSurface)
     connect(shellSurface, &T::transientForChanged, this, &ShellClient::setTransient);
 
     connect(static_cast<XdgShellInterface *>(m_xdgShellSurface->global()), &XdgShellInterface::pongReceived, 
-            m_xdgShellSurface, &XdgShellSurfaceInterface::close);
+            this, [this](qint32 serial){
+                auto it = m_pingSerials.find(serial);
+                if (it != m_pingSerials.end()) {
+                    qWarning()<<"PONGATO"<<serial<<it.value();
+                    if (it.value() == CloseWindow && m_xdgShellSurface) {
+                        m_xdgShellSurface->close();
+                    }
+                    m_pingSerials.erase(it);
+                }
+            });
+
     connect(static_cast<XdgShellInterface *>(m_xdgShellSurface->global()), &XdgShellInterface::pingTimeout, 
-            this, &ShellClient::killWindow);
+            m_xdgShellSurface, [this](qint32 serial) {
+                auto it = m_pingSerials.find(serial);
+                if (it != m_pingSerials.end()) {
+                    if (unresponsive()) {
+                        qCDebug(KWIN_CORE) << "Final ping timeout, asking to kill:" << caption();
+                        static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->discardPing(serial);
+                        killWindow();
+                        m_pingSerials.erase(it);
+                        return;
+                    }
+                    qCDebug(KWIN_CORE) << "First ping timeout:" << caption();
+
+                    setUnresponsive(true);
+                }
+            });
 }
 
 void ShellClient::init()
@@ -584,7 +608,9 @@ QString ShellClient::caption(bool full, bool stripped) const
 void ShellClient::closeWindow()
 {
     if (m_xdgShellSurface && isCloseable()) {
-        static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping();
+        const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping();
+        m_pingSerials.insert(pingSerial, CloseWindow);
+        qWarning()<<"STO A PINGA'"<<pingSerial;
     } else if (m_qtExtendedSurface && isCloseable()) {
         m_qtExtendedSurface->close();
     } else if (m_internalWindow) {
@@ -851,6 +877,8 @@ const QKeySequence &ShellClient::shortcut() const
 void ShellClient::takeFocus()
 {
     if (rules()->checkAcceptFocus(wantsInput())) {
+        const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping();
+        m_pingSerials.insert(pingSerial, FocusWindow);
         setActive(true);
     }
 
