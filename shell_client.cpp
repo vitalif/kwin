@@ -247,12 +247,10 @@ void ShellClient::init()
         //can maybe just call setFocus() or something
         connect(m_xdgShellPopup, &XdgShellPopupInterface::grabbed, this, [this](SeatInterface *seat, quint32 serial) {
             Q_UNUSED(serial)
-            qDebug() << "grabbed!";
             seat->setFocusedPointerSurface(surface());
         });
 
         QRect position = QRect(m_xdgShellPopup->transientOffset(), m_xdgShellPopup->initialSize());
-        qDebug() << "new popup at " << position;
         m_xdgShellPopup->configure(position);
 
         connect(m_xdgShellPopup, &XdgShellPopupInterface::destroyed, this, &ShellClient::destroyClient);
@@ -1030,6 +1028,15 @@ void ShellClient::requestGeometry(const QRect &rect)
     if (m_xdgShellSurface) {
         m_xdgShellSurface->configure(xdgSurfaceStates(), size);
     }
+    if (m_xdgShellPopup) {
+        auto parent = transientFor();
+        if (parent) {
+            const QPoint globalClientContentPos = parent->geometry().topLeft() + parent->clientPos();
+            const QPoint relativeOffset = rect.topLeft() -globalClientContentPos;
+            m_xdgShellPopup->configure(QRect(relativeOffset, rect.size()));
+        }
+    }
+
     m_blockedRequestGeometry = QRect();
     if (m_internal) {
         m_internalWindow->setGeometry(QRect(rect.topLeft() + QPoint(borderLeft(), borderTop()), rect.size() - QSize(borderLeft() + borderRight(), borderTop() + borderBottom())));
