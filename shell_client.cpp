@@ -1412,6 +1412,9 @@ bool ShellClient::shouldExposeToWindowManagement()
     if (isLockScreen()) {
         return false;
     }
+    if (m_xdgShellPopup) {
+        return false;
+    }
     if (m_shellSurface) {
         if (m_shellSurface->isTransient() && !m_shellSurface->acceptsKeyboardFocus()) {
             return false;
