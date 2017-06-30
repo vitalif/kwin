@@ -41,6 +41,10 @@ class KWIN_EXPORT ShellClient : public AbstractClient
 {
     Q_OBJECT
 public:
+    enum PingReason {
+        CloseWindow = 0,
+        FocusWindow
+    };
     ShellClient(KWayland::Server::ShellSurfaceInterface *surface);
     ShellClient(KWayland::Server::XdgShellSurfaceInterface *surface);
     ShellClient(KWayland::Server::XdgShellPopupInterface *surface);
@@ -229,6 +233,7 @@ private:
     int m_requestGeometryBlockCounter = 0;
     QRect m_blockedRequestGeometry;
     QString m_caption;
+    QHash<qint32, PingReason> m_pingSerials;
 
     bool m_compositingSetup = false;
 };
