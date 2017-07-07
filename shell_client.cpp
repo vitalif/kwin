@@ -185,25 +185,6 @@ void ShellClient::initSurface(T *shellSurface)
                     m_pingSerials.erase(it);
                 }
             });
-
-    connect(static_cast<XdgShellInterface *>(m_xdgShellSurface->global()), &XdgShellInterface::pingDelayed, 
-            m_xdgShellSurface, [this](qint32 serial) {
-                auto it = m_pingSerials.find(serial);
-                if (it != m_pingSerials.end()) {
-                    qCDebug(KWIN_CORE) << "First ping timeout:" << caption();
-                    setUnresponsive(true);
-                }
-            });
-
-    connect(static_cast<XdgShellInterface *>(m_xdgShellSurface->global()), &XdgShellInterface::pingTimeout, 
-            m_xdgShellSurface, [this](qint32 serial) {
-                auto it = m_pingSerials.find(serial);
-                if (it != m_pingSerials.end()) {
-                    qCDebug(KWIN_CORE) << "Final ping timeout, asking to kill:" << caption();
-                    killWindow();
-                    m_pingSerials.erase(it);
-                }
-            });
 }
 
 void ShellClient::init()
@@ -249,6 +230,26 @@ void ShellClient::init()
         initSurface(m_shellSurface);
     } else if (m_xdgShellSurface) {
         initSurface(m_xdgShellSurface);
+
+        connect(m_xdgShellSurface->global(), &XdgShellInterface::pingDelayed,
+            m_xdgShellSurface, [this](qint32 serial) {
+                auto it = m_pingSerials.find(serial);
+                if (it != m_pingSerials.end()) {
+                    qCDebug(KWIN_CORE) << "First ping timeout:" << caption();
+                    setUnresponsive(true);
+                }
+            });
+
+        connect(m_xdgShellSurface->global(), &XdgShellInterface::pingTimeout,
+            m_xdgShellSurface, [this](qint32 serial) {
+                auto it = m_pingSerials.find(serial);
+                if (it != m_pingSerials.end()) {
+                    qCDebug(KWIN_CORE) << "Final ping timeout, asking to kill:" << caption();
+                    killWindow();
+                    m_pingSerials.erase(it);
+                }
+            });
+
         connect(m_xdgShellSurface, &XdgShellSurfaceInterface::windowMenuRequested, this,
             [this] (SeatInterface *seat, quint32 serial, const QPoint &surfacePos) {
                 // TODO: check serial on seat
