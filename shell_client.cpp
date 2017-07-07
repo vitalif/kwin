@@ -875,7 +875,7 @@ const QKeySequence &ShellClient::shortcut() const
 
 void ShellClient::takeFocus()
 {
-    if (rules()->checkAcceptFocus(wantsInput())) {
+    if (m_xdgShellSurface && rules()->checkAcceptFocus(wantsInput())) {
         const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping();
         m_pingSerials.insert(pingSerial, FocusWindow);
         setActive(true);
