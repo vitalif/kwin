@@ -1,8 +1,8 @@
 /********************************************************************
-KWin - the KDE window manager
-This file is part of the KDE project.
+ KWin - the KDE window manager
+ This file is part of the KDE project.
 
-Copyright (C) 2014 Martin Gräßlin <mgraesslin@kde.org>
+Copyright (C) 2017 Martin Flöser <mgraesslin@kde.org>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,27 +17,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
-#ifndef KWIN_MOCK_CLIENT_H
-#define KWIN_MOCK_CLIENT_H
-
-#include <abstract_client.h>
-
-#include <QObject>
-#include <QRect>
+#include "abstract_opengl_context_attribute_builder.h"
 
 namespace KWin
 {
 
-class Client : public AbstractClient
+QDebug AbstractOpenGLContextAttributeBuilder::operator<<(QDebug dbg) const
 {
-    Q_OBJECT
-public:
-    explicit Client(QObject *parent);
-    virtual ~Client();
-    void showOnScreenEdge() override;
-
-};
-
+    QDebugStateSaver saver(dbg);
+    dbg.nospace() << "\nVersion requested:\t" << isVersionRequested() << "\n";
+    if (isVersionRequested()) {
+        dbg.nospace() << "Version:\t" << majorVersion() << "." << minorVersion() << "\n";
+    }
+    dbg.nospace() << "Robust:\t" << isRobust();
+    return dbg;
 }
 
-#endif
+}

@@ -700,10 +700,11 @@ void AbstractClient::setupWindowManagementInterface()
     w->setFullscreenable(isFullScreenable());
     w->setIcon(icon());
     auto updateAppId = [this, w] {
-        w->setAppId(QString::fromUtf8(m_desktopFileName.isEmpty() ? resourceName() : m_desktopFileName));
+        w->setAppId(QString::fromUtf8(m_desktopFileName.isEmpty() ? resourceClass() : m_desktopFileName));
     };
     updateAppId();
     w->setSkipTaskbar(skipTaskbar());
+    w->setPid(pid());
     w->setShadeable(isShadeable());
     w->setShaded(isShade());
     w->setResizable(isResizable());
@@ -1495,7 +1496,7 @@ bool AbstractClient::processDecorationButtonPress(QMouseEvent *event, bool ignor
             const qint64 interval = m_decoration.doubleClickTimer.elapsed();
             m_decoration.doubleClickTimer.invalidate();
             if (interval > QGuiApplication::styleHints()->mouseDoubleClickInterval()) {
-                m_decoration.doubleClickTimer.invalidate(); // expired -> new first click and pot. init
+                m_decoration.doubleClickTimer.start(); // expired -> new first click and pot. init
             } else {
                 Workspace::self()->performWindowOperation(this, options->operationTitlebarDblClick());
                 dontMoveResize();

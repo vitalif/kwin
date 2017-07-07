@@ -261,7 +261,7 @@ void DrmBackend::openDrm()
     m_drmId = device->sysNum();
 
     // trying to activate Atomic Mode Setting (this means also Universal Planes)
-    if (qEnvironmentVariableIsSet("KWIN_DRM_AMS")) {
+    if (!qEnvironmentVariableIsSet("KWIN_DRM_NO_AMS")) {
         if (drmSetClientCap(m_fd, DRM_CLIENT_CAP_ATOMIC, 1) == 0) {
             qCDebug(KWIN_DRM) << "Using Atomic Mode Setting.";
             m_atomicModeSetting = true;
@@ -494,10 +494,10 @@ void DrmBackend::readOutputsConfiguration()
     const QByteArray uuid = generateOutputConfigurationUuid();
     const auto outputGroup = kwinApp()->config()->group("DrmOutputs");
     const auto configGroup = outputGroup.group(uuid);
-    qCDebug(KWIN_DRM) << "Reading output configuration for" << uuid;
     // default position goes from left to right
     QPoint pos(0, 0);
     for (auto it = m_outputs.begin(); it != m_outputs.end(); ++it) {
+        qCDebug(KWIN_DRM) << "Reading output configuration for [" << uuid << "] ["<< (*it)->uuid() << "]";
         const auto outputConfig = configGroup.group((*it)->uuid());
         (*it)->setGlobalPos(outputConfig.readEntry<QPoint>("Position", pos));
         // TODO: add mode
@@ -705,15 +705,13 @@ DrmDumbBuffer *DrmBackend::createBuffer(const QSize &size)
     return b;
 }
 
+#if HAVE_GBM
 DrmSurfaceBuffer *DrmBackend::createBuffer(gbm_surface *surface)
 {
-#if HAVE_GBM
     DrmSurfaceBuffer *b = new DrmSurfaceBuffer(this, surface);
     return b;
-#else
-    return nullptr;
-#endif
 }
+#endif
 
 void DrmBackend::outputDpmsChanged()
 {

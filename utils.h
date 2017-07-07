@@ -200,14 +200,6 @@ static inline int bitCount(uint32_t mask)
 #endif
 }
 
-
-template <typename T>
-T qMax3(const T &value1, const T &value2, const T &value3)
-{
-    return qMax(value1, qMax(value2, value3));
-}
-
-
 /**
  * Separate the concept of an unet QPoint and 0,0
  */

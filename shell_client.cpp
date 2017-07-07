@@ -356,7 +356,6 @@ QPoint ShellClient::clientContentPos() const
 
 QSize ShellClient::clientSize() const
 {
-    // TODO: connect for changes
     return m_clientSize;
 }
 
@@ -1023,6 +1022,11 @@ void ShellClient::updateInternalWindowGeometry()
     }
     doSetGeometry(QRect(m_internalWindow->geometry().topLeft() - QPoint(borderLeft(), borderTop()),
                         m_internalWindow->geometry().size() + QSize(borderLeft() + borderRight(), borderTop() + borderBottom())));
+}
+
+pid_t ShellClient::pid() const
+{
+    return surface()->client()->processId();
 }
 
 bool ShellClient::isInternal() const

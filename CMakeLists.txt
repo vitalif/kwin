@@ -1,5 +1,5 @@
 project(KWIN)
-set(PROJECT_VERSION "5.9.90")
+set(PROJECT_VERSION "5.10.90")
 set(PROJECT_VERSION_MAJOR 5)
 
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
@@ -440,6 +440,8 @@ set(kwin_KDEINIT_SRCS
     xkb.cpp
     gestures.cpp
     popup_input_filter.cpp
+    abstract_opengl_context_attribute_builder.cpp
+    egl_context_attribute_builder.cpp
    )
 
 if(KWIN_BUILD_TABBOX)

@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "overlaywindow.h"
 #include "screens.h"
+#include "cursor.h"
 #include "decorations/decoratedclient.h"
 
 #include <KWayland/Server/subcompositor_interface.h>
@@ -406,8 +407,8 @@ SceneOpenGL::SceneOpenGL(OpenGLBackend *backend, QObject *parent)
         init_ok = false;
         return; // error
     }
-    if (glPlatform->isMesaDriver() && glPlatform->mesaVersion() < kVersionNumber(8, 0)) {
-        qCCritical(KWIN_CORE) << "KWin requires at least Mesa 8.0 for OpenGL compositing.";
+    if (glPlatform->isMesaDriver() && glPlatform->mesaVersion() < kVersionNumber(10, 0)) {
+        qCCritical(KWIN_CORE) << "KWin requires at least Mesa 10.0 for OpenGL compositing.";
         init_ok = false;
         return;
     }
@@ -678,6 +679,57 @@ void SceneOpenGL::insertWait()
     }
 }
 
+/**
+ * Render cursor texture in case hardware cursor is disabled.
+ * Useful for screen recording apps or backends that can't do planes.
+ */
+void SceneOpenGL2::paintCursor()
+{
+    // don't paint if we use hardware cursor
+    if (!kwinApp()->platform()->usesSoftwareCursor()) {
+        return;
+    }
+
+    // lazy init texture cursor only in case we need software rendering
+    if (!m_cursorTexture) {
+        auto updateCursorTexture = [this] {
+            // don't paint if no image for cursor is set
+            const QImage img = kwinApp()->platform()->softwareCursor();
+            if (img.isNull()) {
+                return;
+            }
+            m_cursorTexture.reset(new GLTexture(img));
+        };
+
+        // init now
+        updateCursorTexture();
+
+        // handle shape update on case cursor image changed
+        connect(Cursor::self(), &Cursor::cursorChanged, this, updateCursorTexture);
+    }
+
+    // get cursor position in projection coordinates
+    const QPoint cursorPos = Cursor::pos() - kwinApp()->platform()->softwareCursorHotspot();
+    const QRect cursorRect(0, 0, m_cursorTexture->width(), m_cursorTexture->height());
+    QMatrix4x4 mvp = m_projectionMatrix;
+    mvp.translate(cursorPos.x(), cursorPos.y());
+
+    // handle transparence
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // paint texture in cursor offset
+    m_cursorTexture->bind();
+    ShaderBinder binder(ShaderTrait::MapTexture);
+    binder.shader()->setUniform(GLShader::ModelViewProjectionMatrix, mvp);
+    m_cursorTexture->render(QRegion(cursorRect), cursorRect);
+    m_cursorTexture->unbind();
+
+    kwinApp()->platform()->markCursorAsRendered();
+
+    glDisable(GL_BLEND);
+}
+
 qint64 SceneOpenGL::paint(QRegion damage, ToplevelList toplevels)
 {
     // actually paint the frame, flushed with the NEXT frame
@@ -711,6 +763,7 @@ qint64 SceneOpenGL::paint(QRegion damage, ToplevelList toplevels)
             int mask = 0;
             updateProjectionMatrix();
             paintScreen(&mask, damage.intersected(geo), repaint, &update, &valid, projectionMatrix(), geo);   // call generic implementation
+            paintCursor();
 
             GLVertexBuffer::streamingBuffer()->endOfFrame();
 
@@ -2248,12 +2301,12 @@ void SceneOpenGLShadow::buildQuads()
     const QRectF outerRect(QPointF(-leftOffset(), -topOffset()),
                            QPointF(topLevel()->width() + rightOffset(), topLevel()->height() + bottomOffset()));
 
-    const int width = qMax3(topLeft.width(), left.width(), bottomLeft.width()) +
-                      qMax(top.width(), bottom.width()) +
-                      qMax3(topRight.width(), right.width(), bottomRight.width());
-    const int height = qMax3(topLeft.height(), top.height(), topRight.height()) +
-                       qMax(left.height(), right.height()) +
-                       qMax3(bottomLeft.height(), bottom.height(), bottomRight.height());
+    const int width = std::max({topLeft.width(), left.width(), bottomLeft.width()}) +
+                      std::max(top.width(), bottom.width()) +
+                      std::max({topRight.width(), right.width(), bottomRight.width()});
+    const int height = std::max({topLeft.height(), top.height(), topRight.height()}) +
+                       std::max(left.height(), right.height()) +
+                       std::max({bottomLeft.height(), bottom.height(), bottomRight.height()});
 
     qreal tx1(0.0), tx2(0.0), ty1(0.0), ty2(0.0);
 
@@ -2355,13 +2408,12 @@ bool SceneOpenGLShadow::prepareBackend()
     const QSize topLeft(shadowPixmap(ShadowElementTopLeft).size());
     const QSize bottomRight(shadowPixmap(ShadowElementBottomRight).size());
 
-    const int width = qMax3(topLeft.width(), left.width(), bottomLeft.width()) +
-                      qMax(top.width(), bottom.width()) +
-                      qMax3(topRight.width(), right.width(), bottomRight.width());
-
-    const int height = qMax3(topRight.height(), top.height(), topLeft.height()) +
-                       qMax(left.height(), right.height()) +
-                       qMax3(bottomLeft.height(), bottom.height(), bottomRight.height());
+    const int width = std::max({topLeft.width(), left.width(), bottomLeft.width()}) +
+                      std::max(top.width(), bottom.width()) +
+                      std::max({topRight.width(), right.width(), bottomRight.width()});
+    const int height = std::max({topLeft.height(), top.height(), topRight.height()}) +
+                       std::max(left.height(), right.height()) +
+                       std::max({bottomLeft.height(), bottom.height(), bottomRight.height()});
 
     if (width == 0 || height == 0) {
         return false;

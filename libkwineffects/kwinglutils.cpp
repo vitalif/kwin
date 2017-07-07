@@ -128,11 +128,19 @@ static QString formatGLError(GLenum err)
 bool checkGLError(const char* txt)
 {
     GLenum err = glGetError();
+    if (err == GL_CONTEXT_LOST) {
+        qCWarning(LIBKWINGLUTILS) << "GL error: context lost";
+        return true;
+    }
     bool hasError = false;
     while (err != GL_NO_ERROR) {
         qCWarning(LIBKWINGLUTILS) << "GL error (" << txt << "): " << formatGLError(err);
         hasError = true;
         err = glGetError();
+        if (err == GL_CONTEXT_LOST) {
+            qCWarning(LIBKWINGLUTILS) << "GL error: context lost";
+            break;
+        }
     }
     return hasError;
 }
@@ -612,6 +620,10 @@ bool ShaderManager::selfTest()
     }
     if (GLPlatform::instance()->isNvidia() && GLPlatform::instance()->glRendererString().contains("Quadro")) {
         qCWarning(LIBKWINGLUTILS) << "Skipping self test as it is reported to return false positive results on Quadro hardware";
+        return true;
+    }
+    if (GLPlatform::instance()->isMesaDriver() && GLPlatform::instance()->mesaVersion() >= kVersionNumber(17, 0)) {
+        qCWarning(LIBKWINGLUTILS) << "Skipping self test as it is reported to return false positive results on Mesa drivers";
         return true;
     }
 

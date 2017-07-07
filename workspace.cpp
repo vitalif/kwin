@@ -112,7 +112,6 @@ Workspace::Workspace(const QString &sessionKey)
     , movingClient(0)
     , delayfocus_client(0)
     , force_restacking(false)
-    , x_stacking_dirty(true)
     , showing_desktop(false)
     , was_user_interaction(false)
     , session_saving(false)
@@ -392,7 +391,7 @@ void Workspace::init()
                     if (!stacking_order.contains(c))    // It'll be updated later, and updateToolWindows() requires
                         stacking_order.append(c);      // c to be in stacking_order
                 }
-                x_stacking_dirty = true;
+                markXStackingOrderAsDirty();
                 updateStackingOrder(true);
                 updateClientArea();
                 if (c->wantsInput()) {
@@ -406,7 +405,7 @@ void Workspace::init()
                             QRect area = clientArea(PlacementArea, Screens::self()->current(), c->desktop());
                             c->placeIn(area);
                         }
-                        x_stacking_dirty = true;
+                        markXStackingOrderAsDirty();
                         updateStackingOrder(true);
                         updateClientArea();
                         if (c->wantsInput()) {
@@ -416,7 +415,7 @@ void Workspace::init()
                 );
                 connect(c, &ShellClient::windowHidden, this,
                     [this] {
-                        x_stacking_dirty = true;
+                        markXStackingOrderAsDirty();
                         updateStackingOrder(true);
                         updateClientArea();
                     }
@@ -431,7 +430,7 @@ void Workspace::init()
                 }
                 clientHidden(c);
                 emit clientRemoved(c);
-                x_stacking_dirty = true;
+                markXStackingOrderAsDirty();
                 updateStackingOrder(true);
                 updateClientArea();
             }
@@ -562,7 +561,7 @@ void Workspace::addClient(Client* c)
         unconstrained_stacking_order.append(c);   // Raise if it hasn't got any stacking position yet
     if (!stacking_order.contains(c))    // It'll be updated later, and updateToolWindows() requires
         stacking_order.append(c);      // c to be in stacking_order
-    x_stacking_dirty = true;
+    markXStackingOrderAsDirty();
     updateClientArea(); // This cannot be in manage(), because the client got added only now
     updateClientLayer(c);
     if (c->isDesktop()) {
@@ -586,7 +585,7 @@ void Workspace::addClient(Client* c)
 void Workspace::addUnmanaged(Unmanaged* c)
 {
     unmanaged.append(c);
-    x_stacking_dirty = true;
+    markXStackingOrderAsDirty();
 }
 
 /**
@@ -622,7 +621,7 @@ void Workspace::removeClient(Client* c)
     clients.removeAll(c);
     m_allClients.removeAll(c);
     desktops.removeAll(c);
-    x_stacking_dirty = true;
+    markXStackingOrderAsDirty();
     attention_chain.removeAll(c);
     Group* group = findGroup(c->window());
     if (group != NULL)
@@ -652,7 +651,7 @@ void Workspace::removeUnmanaged(Unmanaged* c)
     assert(unmanaged.contains(c));
     unmanaged.removeAll(c);
     emit unmanagedRemoved(c);
-    x_stacking_dirty = true;
+    markXStackingOrderAsDirty();
 }
 
 void Workspace::addDeleted(Deleted* c, Toplevel *orig)
@@ -671,7 +670,7 @@ void Workspace::addDeleted(Deleted* c, Toplevel *orig)
     } else {
         stacking_order.append(c);
     }
-    x_stacking_dirty = true;
+    markXStackingOrderAsDirty();
     connect(c, SIGNAL(needsRepaint()), m_compositor, SLOT(scheduleRepaint()));
 }
 
@@ -682,7 +681,7 @@ void Workspace::removeDeleted(Deleted* c)
     deleted.removeAll(c);
     unconstrained_stacking_order.removeAll(c);
     stacking_order.removeAll(c);
-    x_stacking_dirty = true;
+    markXStackingOrderAsDirty();
     if (c->wasClient() && m_compositor) {
         m_compositor->updateCompositeBlocking();
     }
@@ -1307,8 +1306,14 @@ void Workspace::setShowingDesktop(bool showing)
     }
     } // ~StackingUpdatesBlocker
 
-    if (showing_desktop && topDesk)
+    if (showing_desktop && topDesk) {
         requestFocus(topDesk);
+    } else if (!showing_desktop && changed) {
+        const auto client = FocusChain::self()->getForActivation(VirtualDesktopManager::self()->current());
+        if (client) {
+            activateClient(client);
+        }
+    }
     if (changed)
         emit showingDesktopChanged(showing);
 }
@@ -1758,6 +1763,11 @@ Toplevel *Workspace::findInternal(QWindow *w) const
     } else {
         return waylandServer()->findClient(w);
     }
+}
+
+void Workspace::markXStackingOrderAsDirty()
+{
+    m_xStackingQueryTree.reset(new Xcb::Tree(rootWindow()));
 }
 
 } // namespace
