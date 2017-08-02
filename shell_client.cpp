@@ -220,7 +220,7 @@ void ShellClient::init()
         initSurface(m_xdgShellSurface);
 
         connect(static_cast<XdgShellInterface *>(m_xdgShellSurface->global()), &XdgShellInterface::pingDelayed,
-            m_xdgShellSurface, [this](qint32 serial) {
+            this, [this](qint32 serial) {
                 auto it = m_pingSerials.find(serial);
                 if (it != m_pingSerials.end()) {
                     qCDebug(KWIN_CORE) << "First ping timeout:" << caption();
@@ -229,7 +229,7 @@ void ShellClient::init()
             });
 
         connect(static_cast<XdgShellInterface *>(m_xdgShellSurface->global()), &XdgShellInterface::pingTimeout,
-            m_xdgShellSurface, [this](qint32 serial) {
+            this, [this](qint32 serial) {
                 auto it = m_pingSerials.find(serial);
                 if (it != m_pingSerials.end()) {
                     qCDebug(KWIN_CORE) << "Final ping timeout, asking to kill:" << caption();
