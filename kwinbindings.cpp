@@ -36,6 +36,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEF3( name, key, fnSlot, value )                            \
     initShortcut(QStringLiteral(name).arg(value), i18n(name, value), key, &Workspace::fnSlot, value);
 
+#define DEF4( name, descr, key, functor ) \
+    initShortcut(QStringLiteral(name), i18n(descr), key, functor);
+
+#define DEF5( name, key, functor, value )                            \
+    initShortcut(QStringLiteral(name).arg(value), i18n(name, value), key, functor, value);
+
 
 DEF(I18N_NOOP("Walk Through Window Tabs"),             0, slotActivateNextTab);
 DEF(I18N_NOOP("Walk Through Window Tabs (Reverse)"),   0, slotActivatePrevTab);
@@ -93,30 +99,30 @@ DEF2("Window Shrink Horizontal", I18N_NOOP("Pack Shrink Window Horizontally"),
      0, slotWindowShrinkHorizontal);
 DEF2("Window Shrink Vertical", I18N_NOOP("Pack Shrink Window Vertically"),
      0, slotWindowShrinkVertical);
-DEF2("Window Quick Tile Left", I18N_NOOP("Quick Tile Window to the Left"),
-     0, slotWindowQuickTileLeft);
-DEF2("Window Quick Tile Right", I18N_NOOP("Quick Tile Window to the Right"),
-     0, slotWindowQuickTileRight);
-DEF2("Window Quick Tile Top", I18N_NOOP("Quick Tile Window to the Top"),
-     0, slotWindowQuickTileTop);
-DEF2("Window Quick Tile Bottom", I18N_NOOP("Quick Tile Window to the Bottom"),
-     0, slotWindowQuickTileBottom);
-DEF2("Window Quick Tile Top Left", I18N_NOOP("Quick Tile Window to the Top Left"),
-     0, slotWindowQuickTileTopLeft);
-DEF2("Window Quick Tile Bottom Left", I18N_NOOP("Quick Tile Window to the Bottom Left"),
-     0, slotWindowQuickTileBottomLeft);
-DEF2("Window Quick Tile Top Right", I18N_NOOP("Quick Tile Window to the Top Right"),
-     0, slotWindowQuickTileTopRight);
-DEF2("Window Quick Tile Bottom Right", I18N_NOOP("Quick Tile Window to the Bottom Right"),
-     0, slotWindowQuickTileBottomRight);
-DEF2("Switch Window Up", I18N_NOOP("Switch to Window Above"),
-     Qt::META + Qt::ALT + Qt::Key_Up, slotSwitchWindowUp);
-DEF2("Switch Window Down", I18N_NOOP("Switch to Window Below"),
-     Qt::META + Qt::ALT + Qt::Key_Down, slotSwitchWindowDown);
-DEF2("Switch Window Right", I18N_NOOP("Switch to Window to the Right"),
-     Qt::META + Qt::ALT + Qt::Key_Right, slotSwitchWindowRight);
-DEF2("Switch Window Left", I18N_NOOP("Switch to Window to the Left"),
-     Qt::META + Qt::ALT + Qt::Key_Left, slotSwitchWindowLeft);
+DEF4("Window Quick Tile Left", I18N_NOOP("Quick Tile Window to the Left"),
+     0, std::bind(&Workspace::quickTileWindow, this, QuickTileFlag::Left));
+DEF4("Window Quick Tile Right", I18N_NOOP("Quick Tile Window to the Right"),
+     0, std::bind(&Workspace::quickTileWindow, this, QuickTileFlag::Right));
+DEF4("Window Quick Tile Top", I18N_NOOP("Quick Tile Window to the Top"),
+     0, std::bind(&Workspace::quickTileWindow, this, QuickTileFlag::Top));
+DEF4("Window Quick Tile Bottom", I18N_NOOP("Quick Tile Window to the Bottom"),
+     0, std::bind(&Workspace::quickTileWindow, this, QuickTileFlag::Bottom));
+DEF4("Window Quick Tile Top Left", I18N_NOOP("Quick Tile Window to the Top Left"),
+     0, std::bind(&Workspace::quickTileWindow, this, QuickTileFlag::Top | QuickTileFlag::Left));
+DEF4("Window Quick Tile Bottom Left", I18N_NOOP("Quick Tile Window to the Bottom Left"),
+     0, std::bind(&Workspace::quickTileWindow, this, QuickTileFlag::Bottom | QuickTileFlag::Left));
+DEF4("Window Quick Tile Top Right", I18N_NOOP("Quick Tile Window to the Top Right"),
+     0, std::bind(&Workspace::quickTileWindow, this, QuickTileFlag::Top | QuickTileFlag::Right));
+DEF4("Window Quick Tile Bottom Right", I18N_NOOP("Quick Tile Window to the Bottom Right"),
+     0, std::bind(&Workspace::quickTileWindow, this, QuickTileFlag::Bottom | QuickTileFlag::Right));
+DEF4("Switch Window Up", I18N_NOOP("Switch to Window Above"),
+     Qt::META + Qt::ALT + Qt::Key_Up, std::bind(static_cast<void (Workspace::*)(Direction)>(&Workspace::switchWindow), this, DirectionNorth));
+DEF4("Switch Window Down", I18N_NOOP("Switch to Window Below"),
+     Qt::META + Qt::ALT + Qt::Key_Down, std::bind(static_cast<void (Workspace::*)(Direction)>(&Workspace::switchWindow), this, DirectionSouth));
+DEF4("Switch Window Right", I18N_NOOP("Switch to Window to the Right"),
+     Qt::META + Qt::ALT + Qt::Key_Right, std::bind(static_cast<void (Workspace::*)(Direction)>(&Workspace::switchWindow), this, DirectionEast));
+DEF4("Switch Window Left", I18N_NOOP("Switch to Window to the Left"),
+     Qt::META + Qt::ALT + Qt::Key_Left, std::bind(static_cast<void (Workspace::*)(Direction)>(&Workspace::switchWindow), this, DirectionWest));
 DEF2("Increase Opacity", I18N_NOOP("Increase Opacity of Active Window by 5 %"),
     0, slotIncreaseWindowOpacity);
 DEF2("Decrease Opacity", I18N_NOOP("Decrease Opacity of Active Window by 5 %"),
@@ -126,7 +132,7 @@ DEF2("Window On All Desktops", I18N_NOOP("Keep Window on All Desktops"),
      0, slotWindowOnAllDesktops);
 
 for (int i = 1; i < 21; ++i) {
-    DEF3(I18N_NOOP("Window to Desktop %1"),        0, slotWindowToDesktop, i);
+    DEF5(I18N_NOOP("Window to Desktop %1"),        0, std::bind(&Workspace::slotWindowToDesktop, this, i), i);
 }
 DEF(I18N_NOOP("Window to Next Desktop"),           0, slotWindowToNextDesktop);
 DEF(I18N_NOOP("Window to Previous Desktop"),       0, slotWindowToPreviousDesktop);

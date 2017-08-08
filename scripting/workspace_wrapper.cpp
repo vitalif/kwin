@@ -149,19 +149,6 @@ SLOTWRAPPER(slotWindowGrowHorizontal)
 SLOTWRAPPER(slotWindowGrowVertical)
 SLOTWRAPPER(slotWindowShrinkHorizontal)
 SLOTWRAPPER(slotWindowShrinkVertical)
-SLOTWRAPPER(slotWindowQuickTileLeft)
-SLOTWRAPPER(slotWindowQuickTileRight)
-SLOTWRAPPER(slotWindowQuickTileTop)
-SLOTWRAPPER(slotWindowQuickTileBottom)
-SLOTWRAPPER(slotWindowQuickTileTopLeft)
-SLOTWRAPPER(slotWindowQuickTileTopRight)
-SLOTWRAPPER(slotWindowQuickTileBottomLeft)
-SLOTWRAPPER(slotWindowQuickTileBottomRight)
-
-SLOTWRAPPER(slotSwitchWindowUp)
-SLOTWRAPPER(slotSwitchWindowDown)
-SLOTWRAPPER(slotSwitchWindowRight)
-SLOTWRAPPER(slotSwitchWindowLeft)
 
 SLOTWRAPPER(slotIncreaseWindowOpacity)
 SLOTWRAPPER(slotLowerWindowOpacity)
@@ -182,6 +169,34 @@ SLOTWRAPPER(slotWindowToDesktopRight)
 SLOTWRAPPER(slotWindowToDesktopLeft)
 SLOTWRAPPER(slotWindowToDesktopUp)
 SLOTWRAPPER(slotWindowToDesktopDown)
+
+#undef SLOTWRAPPER
+
+#define SLOTWRAPPER(name,modes) \
+void WorkspaceWrapper::name() { \
+    Workspace::self()->quickTileWindow(modes); \
+}
+
+SLOTWRAPPER(slotWindowQuickTileLeft, QuickTileFlag::Left)
+SLOTWRAPPER(slotWindowQuickTileRight, QuickTileFlag::Right)
+SLOTWRAPPER(slotWindowQuickTileTop, QuickTileFlag::Top)
+SLOTWRAPPER(slotWindowQuickTileBottom, QuickTileFlag::Bottom)
+SLOTWRAPPER(slotWindowQuickTileTopLeft, QuickTileFlag::Top | QuickTileFlag::Left)
+SLOTWRAPPER(slotWindowQuickTileTopRight, QuickTileFlag::Top | QuickTileFlag::Right)
+SLOTWRAPPER(slotWindowQuickTileBottomLeft, QuickTileFlag::Bottom | QuickTileFlag::Left)
+SLOTWRAPPER(slotWindowQuickTileBottomRight, QuickTileFlag::Bottom | QuickTileFlag::Right)
+
+#undef SLOTWRAPPER
+
+#define SLOTWRAPPER(name,direction) \
+void WorkspaceWrapper::name() { \
+    Workspace::self()->switchWindow(Workspace::direction); \
+}
+
+SLOTWRAPPER(slotSwitchWindowUp, DirectionNorth)
+SLOTWRAPPER(slotSwitchWindowDown, DirectionSouth)
+SLOTWRAPPER(slotSwitchWindowRight, DirectionEast)
+SLOTWRAPPER(slotSwitchWindowLeft, DirectionWest)
 
 #undef SLOTWRAPPER
 

@@ -11,6 +11,7 @@ Name[es]=Guiones del gestor de ventanas
 Name[eu]=Leiho kudeatzailearen scriptak
 Name[fi]=Ikkunaohjelman skriptit
 Name[fr]=Scripts du gestionnaire de fenêtres
+Name[gl]=Scripts do xestor de xanelas
 Name[hu]=Ablakkezelő szkriptek
 Name[ia]=Gerente de scripts de fenestra 
 Name[it]=Script del gestore delle finestre
@@ -35,7 +36,7 @@ Name[x-test]=xxWindow Manager Scriptsxx
 Name[zh_CN]=窗口管理器脚本
 Name[zh_TW]=視窗管理員指令稿
 
-ProvidersUrl=http://download.kde.org/ocs/providers.xml
+ProvidersUrl=https://download.kde.org/ocs/providers.xml
 Categories=KWin Scripts
 StandardResource=tmp
 InstallationCommand=plasmapkg2 -t kwinscript -i %f

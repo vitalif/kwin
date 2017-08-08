@@ -69,17 +69,7 @@ typedef struct xcb_glx_buffer_swap_complete_event_t {
 #endif
 
 #include <tuple>
-
-#if __cplusplus <= 201103L
-namespace std {
-    // C++-14
-    template<class T, class... Args>
-    unique_ptr<T> make_unique(Args&&... args) {
-        return unique_ptr<T>(new T(std::forward<Args>(args)...));
-    }
-}
-#endif
-
+#include <memory>
 
 namespace KWin
 {
@@ -517,6 +507,22 @@ void GlxBackend::initVisualDepthHashTable()
 int GlxBackend::visualDepth(xcb_visualid_t visual) const
 {
     return m_visualDepthHash.value(visual);
+}
+
+static inline int bitCount(uint32_t mask)
+{
+#if defined(__GNUC__)
+    return __builtin_popcount(mask);
+#else
+    int count = 0;
+
+    while (mask) {
+        count += (mask & 1);
+        mask >>= 1;
+    }
+
+    return count;
+#endif
 }
 
 FBConfigInfo *GlxBackend::infoForVisual(xcb_visualid_t visual)

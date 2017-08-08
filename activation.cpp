@@ -254,7 +254,7 @@ void Workspace::setActiveClient(AbstractClient* c)
 
         // activating a client can cause a non active fullscreen window to loose the ActiveLayer status on > 1 screens
         if (screens()->count() > 1) {
-            for (ClientList::Iterator it = clients.begin(); it != clients.end(); ++it) {
+            for (auto it = m_allClients.begin(); it != m_allClients.end(); ++it) {
                 if (*it != active_client && (*it)->layer() == ActiveLayer && (*it)->screen() == active_client->screen()) {
                     updateClientLayer(*it);
                 }
@@ -270,7 +270,9 @@ void Workspace::setActiveClient(AbstractClient* c)
 
     updateStackingOrder(); // e.g. fullscreens have different layer when active/not-active
 
-    rootInfo()->setActiveWindow(active_client ? active_client->window() : 0);
+    if (rootInfo()) {
+        rootInfo()->setActiveWindow(active_client ? active_client->window() : 0);
+    }
 
     emit clientActivated(active_client);
     --set_active_client_recursion;

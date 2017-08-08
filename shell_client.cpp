@@ -598,10 +598,9 @@ void ShellClient::blockActivityUpdates(bool b)
     Q_UNUSED(b)
 }
 
-QString ShellClient::caption(bool full, bool stripped) const
+QString ShellClient::caption(bool full) const
 {
     Q_UNUSED(full)
-    Q_UNUSED(stripped)
     return m_caption;
 }
 
@@ -770,7 +769,7 @@ void ShellClient::changeMaximize(bool horizontal, bool vertical, bool adjust)
 
     // Conditional quick tiling exit points
     const auto oldQuickTileMode = quickTileMode();
-    if (quickTileMode() != QuickTileNone) {
+    if (quickTileMode() != QuickTileMode(QuickTileFlag::None)) {
         if (oldMode == MaximizeFull &&
                 !clientArea.contains(m_geomMaximizeRestore.center())) {
             // Not restoring on the same screen
@@ -779,7 +778,7 @@ void ShellClient::changeMaximize(bool horizontal, bool vertical, bool adjust)
         } else if ((oldMode == MaximizeVertical && m_maximizeMode == MaximizeRestore) ||
                   (oldMode == MaximizeFull && m_maximizeMode == MaximizeHorizontal)) {
             // Modifying geometry of a tiled window
-            updateQuickTileMode(QuickTileNone); // Exit quick tile mode without restoring geometry
+            updateQuickTileMode(QuickTileFlag::None); // Exit quick tile mode without restoring geometry
         }
     }
 
@@ -788,9 +787,9 @@ void ShellClient::changeMaximize(bool horizontal, bool vertical, bool adjust)
         m_geomMaximizeRestore = geometry();
         // TODO: Client has more checks
         if (options->electricBorderMaximize()) {
-            updateQuickTileMode(QuickTileMaximize);
+            updateQuickTileMode(QuickTileFlag::Maximize);
         } else {
-            updateQuickTileMode(QuickTileNone);
+            updateQuickTileMode(QuickTileFlag::None);
         }
         if (quickTileMode() != oldQuickTileMode) {
             emit quickTileModeChanged();
@@ -799,7 +798,7 @@ void ShellClient::changeMaximize(bool horizontal, bool vertical, bool adjust)
         workspace()->raiseClient(this);
     } else {
         if (m_maximizeMode == MaximizeRestore) {
-            updateQuickTileMode(QuickTileNone);
+            updateQuickTileMode(QuickTileFlag::None);
         }
         if (quickTileMode() != oldQuickTileMode) {
             emit quickTileModeChanged();
@@ -860,17 +859,6 @@ void ShellClient::setNoBorder(bool set)
 void ShellClient::setOnAllActivities(bool set)
 {
     Q_UNUSED(set)
-}
-
-void ShellClient::setShortcut(const QString &cut)
-{
-    Q_UNUSED(cut)
-}
-
-const QKeySequence &ShellClient::shortcut() const
-{
-    static QKeySequence seq;
-    return seq;
 }
 
 void ShellClient::takeFocus()
@@ -1545,7 +1533,7 @@ void ShellClient::killWindow()
         return;
     }
     auto c = surface()->client();
-    if (c->processId() == getpid()) {
+    if (c->processId() == getpid() || c->processId() == 0) {
         c->destroy();
         return;
     }

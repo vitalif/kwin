@@ -48,8 +48,12 @@ include(ECMOptionalAddSubdirectory)
 
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0 -DQT_USE_QSTRINGBUILDER)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-inconsistent-missing-override")
+endif()
 
 find_package(Qt5Multimedia QUIET)
 set_package_properties(Qt5Multimedia PROPERTIES
@@ -323,8 +327,17 @@ add_feature_info("prctl/procctl tracing control"
                  CAN_DISABLE_PTRACE
                  "Required for disallowing ptrace on kwin_wayland process")
 
+check_include_file("sys/sysmacros.h" HAVE_SYS_SYSMACROS_H)
 configure_file(config-kwin.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-kwin.h )
 
+check_include_file("linux/vt.h" HAVE_LINUX_VT_H)
+add_feature_info("linux/vt.h"
+                 HAVE_LINUX_VT_H
+                 "Required for virtual terminal support under wayland")
+check_include_file("linux/fb.h"    HAVE_LINUX_FB_H)
+add_feature_info("linux/fb.h"
+                 HAVE_LINUX_FB_H
+                 "Required for the fbdev backend")
 
 ########### global ###############
 set(kwin_effects_dbus_xml ${CMAKE_CURRENT_SOURCE_DIR}/org.kde.kwin.Effects.xml)
@@ -480,8 +493,13 @@ if(HAVE_INPUT)
         libinput/device.cpp
         libinput/events.cpp
         libinput/libinput_logging.cpp
-        virtual_terminal.cpp
     )
+    if (HAVE_LINUX_VT_H)
+         set(kwin_KDEINIT_SRCS
+             ${kwin_KDEINIT_SRCS}
+             virtual_terminal.cpp
+         )
+    endif()
 endif()
 
 kconfig_add_kcfg_files(kwin_KDEINIT_SRCS settings.kcfgc)

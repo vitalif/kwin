@@ -425,8 +425,20 @@ void Workspace::init()
         connect(w, &WaylandServer::shellClientRemoved, this,
             [this] (ShellClient *c) {
                 m_allClients.removeAll(c);
+                if (c == most_recently_raised) {
+                    most_recently_raised = nullptr;
+                }
                 if (c == delayfocus_client) {
                     cancelDelayFocus();
+                }
+                if (c == last_active_client) {
+                    last_active_client = nullptr;
+                }
+                if (client_keys_client == c) {
+                    setupWindowShortcutDone(false);
+                }
+                if (!c->shortcut().isEmpty()) {
+                    c->setShortcut(QString());   // Remove from client_keys
                 }
                 clientHidden(c);
                 emit clientRemoved(c);
@@ -936,7 +948,9 @@ void Workspace::updateClientVisibilityOnDesktopChange(uint oldDesktop, uint newD
         }
     }
     // Now propagate the change, after hiding, before showing
-    rootInfo()->setCurrentDesktop(VirtualDesktopManager::self()->current());
+    if (rootInfo()) {
+        rootInfo()->setCurrentDesktop(VirtualDesktopManager::self()->current());
+    }
 
     if (movingClient && !movingClient->isOnDesktop(newDesktop)) {
         movingClient->setDesktop(newDesktop);
@@ -1234,7 +1248,9 @@ void Workspace::sendClientToScreen(AbstractClient* c, int screen)
 
 void Workspace::sendPingToWindow(xcb_window_t window, xcb_timestamp_t timestamp)
 {
-    rootInfo()->sendPing(window, timestamp);
+    if (rootInfo()) {
+        rootInfo()->sendPing(window, timestamp);
+    }
 }
 
 /**

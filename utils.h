@@ -141,6 +141,18 @@ MaximizeMode operator^(MaximizeMode m1, MaximizeMode m2)
     return MaximizeMode(int(m1) ^ int(m2));
 }
 
+enum class QuickTileFlag {
+    None = 0,
+    Left = 1,
+    Right = 1<<1,
+    Top = 1<<2,
+    Bottom = 1<<3,
+    Horizontal = Left|Right,
+    Vertical = Top|Bottom,
+    Maximize = Left|Right|Top|Bottom
+};
+Q_DECLARE_FLAGS(QuickTileMode, QuickTileFlag)
+
 template <typename T> using ScopedCPointer = QScopedPointer<T, QScopedPointerPodDeleter>;
 
 void KWIN_EXPORT updateXTime();
@@ -183,22 +195,6 @@ Qt::MouseButtons KWIN_EXPORT x11ToQtMouseButtons(int state);
 Qt::KeyboardModifiers KWIN_EXPORT x11ToQtKeyboardModifiers(int state);
 
 void checkNonExistentClients();
-
-static inline int bitCount(uint32_t mask)
-{
-#if defined(__GNUC__)
-    return __builtin_popcount(mask);
-#else
-    int count = 0;
-
-    while (mask) {
-        count += (mask & 1);
-        mask >>= 1;
-    }
-
-    return count;
-#endif
-}
 
 /**
  * Separate the concept of an unet QPoint and 0,0
@@ -245,5 +241,6 @@ protected:
 
 // Must be outside namespace
 Q_DECLARE_OPERATORS_FOR_FLAGS(KWin::StrutAreas)
+Q_DECLARE_OPERATORS_FOR_FLAGS(KWin::QuickTileMode)
 
 #endif

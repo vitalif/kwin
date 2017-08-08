@@ -200,8 +200,6 @@ public:
     QSize sizeForClientSize(const QSize&, Sizemode mode = SizemodeAny, bool noframe = false) const override;
 
     bool providesContextHelp() const override;
-    const QKeySequence &shortcut() const override;
-    void setShortcut(const QString& cut) override;
 
     Options::WindowOperation mouseButtonToWindowOperation(Qt::MouseButtons button);
     bool performMouseCommand(Options::MouseCommand, const QPoint& globalPos) override;
@@ -221,7 +219,7 @@ public:
     void setBlockingCompositing(bool block);
     inline bool isBlockingCompositing() { return blocks_compositing; }
 
-    QString caption(bool full = true, bool stripped = false) const override;
+    QString caption(bool full = true) const override;
 
     using AbstractClient::keyPressEvent;
     void keyPressEvent(uint key_code, xcb_timestamp_t time);   // FRAME ??
@@ -394,9 +392,6 @@ protected:
     QSize resizeIncrements() const override;
     bool acceptsFocus() const override;
 
-private Q_SLOTS:
-    void delayedSetShortcut();
-
     //Signals for the scripting interface
     //Signals make an excellent way for communication
     //in between objects as compared to simple function
@@ -451,7 +446,7 @@ private:
     void setCaption(const QString& s, bool force = false);
     bool hasTransientInternal(const Client* c, bool indirect, ConstClientList& set) const;
     void finishWindowRules();
-    void setShortcutInternal(const QKeySequence &cut = QKeySequence());
+    void setShortcutInternal() override;
 
     void configureRequest(int value_mask, int rx, int ry, int rw, int rh, int gravity, bool from_tool);
     NETExtendedStrut strut() const;
@@ -560,7 +555,7 @@ private:
     QRect geom_fs_restore;
     QTimer* shadeHoverTimer;
     xcb_colormap_t m_colormap;
-    QString cap_normal, cap_iconic, cap_suffix, cap_deco;
+    QString cap_normal, cap_iconic, cap_suffix;
     Group* in_group;
     TabGroup* tab_group;
     QTimer* ping_timer;
@@ -579,7 +574,6 @@ private:
         bool isPending;
     } syncRequest;
     static bool check_active_modal; ///< \see Client::checkActiveModal()
-    QKeySequence _shortcut;
     int sm_stacking_order;
     friend struct ResetupRulesProcedure;
 
@@ -736,11 +730,6 @@ inline const WindowRules* Client::rules() const
 inline xcb_window_t Client::moveResizeGrabWindow() const
 {
     return m_moveResizeGrabWindow;
-}
-
-inline const QKeySequence &Client::shortcut() const
-{
-    return _shortcut;
 }
 
 inline void Client::removeRule(Rules* rule)

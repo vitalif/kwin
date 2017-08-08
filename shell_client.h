@@ -67,7 +67,7 @@ public:
     }
 
     void blockActivityUpdates(bool b = true) override;
-    QString caption(bool full = true, bool stripped = false) const override;
+    QString caption(bool full = true) const override;
     void closeWindow() override;
     AbstractClient *findModal(bool allow_itself = false) override;
     bool isCloseable() const override;
@@ -93,8 +93,6 @@ public:
     void setNoBorder(bool set) override;
     void updateDecoration(bool check_workspace_pos, bool force = false) override;
     void setOnAllActivities(bool set) override;
-    void setShortcut(const QString &cut) override;
-    const QKeySequence &shortcut() const override;
     void takeFocus() override;
     void updateWindowRules(Rules::Types selection) override;
     bool userCanSetFullScreen() const override;

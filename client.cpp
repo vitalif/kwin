@@ -48,9 +48,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFile>
 #include <QMouseEvent>
 #include <QProcess>
-#include <QStandardPaths>
-#include <QScriptEngine>
-#include <QScriptProgram>
 #include <QWhatsThis>
 // XLib
 #include <X11/Xutil.h>
@@ -1424,12 +1421,6 @@ QString Client::readName() const
 
 // The list is taken from http://www.unicode.org/reports/tr9/ (#154840)
 static const QChar LRM(0x200E);
-static const QChar RLM(0x200F);
-static const QChar LRE(0x202A);
-static const QChar RLE(0x202B);
-static const QChar LRO(0x202D);
-static const QChar RLO(0x202E);
-static const QChar PDF(0x202C);
 
 void Client::setCaption(const QString& _s, bool force)
 {
@@ -1440,31 +1431,8 @@ void Client::setCaption(const QString& _s, bool force)
         if (!s[i].isPrint())
             s[i] = QChar(u' ');
     cap_normal = s;
-    if (options->condensedTitle()) {
-        static QScriptEngine engine;
-        static QScriptProgram stripTitle;
-        static QScriptValue script;
-        if (stripTitle.isNull()) {
-            const QString scriptFile = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral(KWIN_NAME "/stripTitle.js"));
-            if (!scriptFile.isEmpty()) {
-                QFile f(scriptFile);
-                if (f.open(QIODevice::ReadOnly|QIODevice::Text)) {
-                    f.reset();
-                    stripTitle = QScriptProgram(QString::fromLocal8Bit(f.readAll()), QStringLiteral("stripTitle.js"));
-                    f.close();
-                }
-            }
-            if (stripTitle.isNull())
-                stripTitle = QScriptProgram(QStringLiteral("(function(title, wm_name, wm_class){ return title ; })"), QStringLiteral("stripTitle.js"));
-            script = engine.evaluate(stripTitle);
-        }
-        QScriptValueList args;
-        args << _s << QString::fromUtf8(resourceName()) << QString::fromUtf8(resourceClass());
-        s = script.call(QScriptValue(), args).toString();
-    }
-    if (!force && s == cap_deco)
+    if (!force)
         return;
-    cap_deco = s;
 
     bool reset_name = force;
     bool was_suffix = (!cap_suffix.isEmpty());
@@ -1533,9 +1501,9 @@ void Client::fetchIconicName()
 /**
  * \reimp
  */
-QString Client::caption(bool full, bool stripped) const
+QString Client::caption(bool full) const
 {
-    QString cap = stripped ? cap_deco : cap_normal;
+    QString cap = cap_normal;
     if (full) {
         cap += cap_suffix;
         if (unresponsive()) {
@@ -1585,9 +1553,9 @@ bool Client::untab(const QRect &toGeometry, bool clientRemoved)
         setClientShown(!(isMinimized() || isShade()));
         bool keepSize = toGeometry.size() == size();
         bool changedSize = false;
-        if (quickTileMode() != QuickTileNone) {
+        if (quickTileMode() != QuickTileMode(QuickTileFlag::None)) {
             changedSize = true;
-            setQuickTileMode(QuickTileNone); // if we leave a quicktiled group, assume that the user wants to untile
+            setQuickTileMode(QuickTileFlag::None); // if we leave a quicktiled group, assume that the user wants to untile
         }
         if (toGeometry.isValid()) {
             if (maximizeMode() != MaximizeRestore) {
