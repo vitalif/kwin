@@ -607,7 +607,7 @@ QString ShellClient::caption(bool full) const
 void ShellClient::closeWindow()
 {
     if (m_xdgShellSurface && isCloseable()) {
-        const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping();
+        const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping(m_xdgShellSurface);
         m_pingSerials.insert(pingSerial, CloseWindow);
     } else if (m_qtExtendedSurface && isCloseable()) {
         m_qtExtendedSurface->close();
@@ -864,7 +864,7 @@ void ShellClient::setOnAllActivities(bool set)
 void ShellClient::takeFocus()
 {
     if (m_xdgShellSurface && rules()->checkAcceptFocus(wantsInput())) {
-        const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping();
+        const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping(m_xdgShellSurface);
         m_pingSerials.insert(pingSerial, FocusWindow);
         setActive(true);
     }
