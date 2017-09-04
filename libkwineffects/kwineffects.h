@@ -58,6 +58,7 @@ class QKeyEvent;
 class QMatrix4x4;
 class QAction;
 
+
 /**
  * Logging category to be used inside the KWin effects.
  * Do not use in this library.
@@ -3158,6 +3159,7 @@ public:
 
     /**
      * Render the frame.
+     * DAVE - deprecate?
      */
     virtual void render(QRegion region = infiniteRegion(), double opacity = 1.0, double frameOpacity = 1.0) = 0;
 
@@ -3187,6 +3189,7 @@ public:
      * Sets the geometry of a selection.
      * To remove the selection set a null rect.
      * @param selection The geometry of the selection in screen coordinates.
+     * DAVE - deprecate?
      **/
     virtual void setSelection(const QRect& selection) = 0;
 
@@ -3231,6 +3234,7 @@ public:
      * @see isCrossFade
      * @see crossFadeProgress
      * @since 4.6
+     * DAVE - deprecate? Let the Qt UI do it?
      **/
     void setCrossFadeProgress(qreal progress);
     /**
@@ -3261,6 +3265,7 @@ protected:
 private:
     EffectFramePrivate* const d;
 };
+
 
 /**
  * Pointer to the global EffectsHandler object.

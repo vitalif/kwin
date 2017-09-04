@@ -37,6 +37,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QGraphicsRotation>
 #include <QGraphicsScale>
 
+// //DAVE
+#include <QQmlEngine>
+#include <QQuickItem>
+#include <QQmlContext>
+#include <QQmlComponent>
+#include <QQuickView>
+#include <QQuickRenderControl>
+#include <QUrl>
+
+#include <QOffscreenSurface>
+#include <QOpenGLContext>
+#include <QOpenGLFramebufferObject>
+#include <QTimer>
+
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 

@@ -44,6 +44,7 @@ class Display;
 
 class QDBusPendingCallWatcher;
 class QDBusServiceWatcher;
+class QQmlContext;
 
 
 namespace KWin
@@ -418,10 +419,47 @@ private:
     Group* group;
 };
 
-class KWIN_EXPORT EffectFrameImpl
-    : public QObject, public EffectFrame
+class KWINEFFECTS_EXPORT EffectQuickView : public QObject //rename EffectQuickViewImpl: public QObject, EffectQuickView
 {
     Q_OBJECT
+public:
+    EffectQuickView(QObject *parent);
+
+    void setSource(const QUrl &source);
+
+    void update();
+    void render();
+
+    QSize size() const;
+
+    //setShader
+
+    void setGeometry(const QRect &rect);
+    QRect geometry() const;
+
+    //DAVE - resize mode / implicitSize?
+    //DAVE errors, protected?
+
+    //could be private if we had a public setContextProp(name, value);
+    QQmlContext *rootContext();
+
+    //setShader here? Or ideally we have some other stub class with geoemtry and setShader
+private:
+    class Private;
+    Private *d; //contains all the QtDeclarative stuff
+};
+
+class KWIN_EXPORT EffectFrameImpl
+    : public EffectQuickView, public EffectFrame
+{
+    Q_OBJECT
+    Q_PROPERTY(QString text READ text NOTIFY textChanged)
+    Q_PROPERTY(QFont font READ font NOTIFY fontChanged)
+    Q_PROPERTY(QIcon icon READ icon NOTIFY iconChanged)
+    Q_PROPERTY(QSize iconSize READ iconSize NOTIFY iconSizeChanged)
+    Q_PROPERTY(QRect selection READ selection NOTIFY selectionGeometryChanged)
+    //not style, as that's static and just affects which QML we load
+
 public:
     explicit EffectFrameImpl(EffectFrameStyle style, bool staticSize = true, QPoint position = QPoint(-1, -1),
                              Qt::Alignment alignment = Qt::AlignCenter);
@@ -445,9 +483,6 @@ public:
     EffectFrameStyle style() const override {
         return m_style;
     };
-    Plasma::FrameSvg& frame() {
-        return m_frame;
-    }
     bool isStatic() const {
         return m_static;
     };
@@ -462,25 +497,17 @@ public:
     const QRect& selection() const {
         return m_selectionGeometry;
     }
-    Plasma::FrameSvg& selectionFrame() {
-        return m_selection;
-    }
-    /**
-     * The foreground text color as specified by the default Plasma theme.
-     */
-    QColor styledTextColor();
-
-private Q_SLOTS:
-    void plasmaThemeChanged();
+Q_SIGNALS:
+    void textChanged();
+    void fontChanged();
+    void iconChanged();
+    void iconSizeChanged();
+    void selectionGeometryChanged();
 
 private:
     Q_DISABLE_COPY(EffectFrameImpl)   // As we need to use Qt slots we cannot copy this class
     void align(QRect &geometry);   // positions geometry around m_point respecting m_alignment
     void autoResize(); // Auto-resize if not a static size
-
-    EffectFrameStyle m_style;
-    Plasma::FrameSvg m_frame; // TODO: share between all EffectFrames
-    Plasma::FrameSvg m_selection;
 
     // Position
     bool m_static;
@@ -494,11 +521,9 @@ private:
     QIcon m_icon;
     QSize m_iconSize;
     QRect m_selectionGeometry;
+    EffectFrameStyle m_style;
 
-    Scene::EffectFrame* m_sceneFrame;
     GLShader* m_shader;
-
-    Plasma::Theme *m_theme;
 };
 
 inline

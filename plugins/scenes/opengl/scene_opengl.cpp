@@ -1388,6 +1388,69 @@ void SceneOpenGL2Window::renderSubSurface(GLShader *shader, const QMatrix4x4 &mv
     }
 }
 
+void SceneOpenGL2::renderEffectQuickView(KWin::EffectQuickView* view)
+{
+    if (view->geometry().isEmpty())
+        return; // Nothing to display
+
+    GLShader* shader = ShaderManager::instance()->pushShader(ShaderTrait::MapTexture | ShaderTrait::Modulate);
+    shader->setUniform(GLShader::ModulationConstant, QVector4D(1.0, 1.0, 1.0, 1.0));
+    shader->setUniform(GLShader::Saturation, 1.0f);
+    const QMatrix4x4 projection;// = m_scene->projectionMatrix();
+
+    const QRect rect = view->geometry();
+
+    QMatrix4x4 mvp(projection);
+    mvp.translate(rect.x(), rect.y());
+//     shader->setUniform(GLShader::ModelViewProjectionMatrix, mvp);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    //Dave - Code to use when QtQuick is using the sotware renderer
+//     GLTexture *t = new GLTexture(m_renderControl->image());
+//     t->bind();
+//     t->render(QRegion(infiniteRegion()), geometry());
+//     t->unbind();
+//     delete t;
+
+    qDebug() << "B";
+    auto texture = view->texture();/*d->m_fbo->texture();*/
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    //TODO cache this in a map?
+    //or Maybe we could/should factory the EffectQuickView::Private into being scene specific
+    //but quads would be generally better anyway
+    GLVertexBuffer* vbo = 0;
+    if (!vbo) {
+        vbo = new GLVertexBuffer(KWin::GLVertexBuffer::Static);
+    }
+    qDebug() << "C";
+
+    const QRect r(QPoint(0,0), rect.size());
+
+    const float verts[ 4 * 2 ] = {
+        static_cast<float>(r.x()), static_cast<float>(r.y()),
+        static_cast<float>(r.x()), static_cast<float>(r.y() + r.height()),
+        static_cast<float>(r.x() + r.width()), static_cast<float>(r.y()),
+        static_cast<float>(r.x() + r.width()), static_cast<float>(r.y() + r.height())
+    };
+        const float texcoords[ 4 * 2 ] = {
+        0.0f, 1.0f,
+        0.0f, 0.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f
+        };
+
+    qDebug() << "D";
+
+    vbo->setData(4, 2, verts, texcoords);
+    vbo->render(QRegion(infiniteRegion()), GL_TRIANGLE_STRIP, false);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_BLEND);
+}
+
 void SceneOpenGL2Window::performPaint(int mask, QRegion region, WindowPaintData data)
 {
     if (!beginRenderWindow(mask, region, data))
@@ -1620,6 +1683,8 @@ bool OpenGLWindowPixmap::isValid() const
 //****************************************
 // SceneOpenGL::EffectFrame
 //****************************************
+
+//DAVE - schedule for destruction!
 
 GLTexture* SceneOpenGL::EffectFrame::m_unstyledTexture = NULL;
 QPixmap* SceneOpenGL::EffectFrame::m_unstyledPixmap = NULL;

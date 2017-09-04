@@ -48,6 +48,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 #include <QDesktopWidget>
+#include <QQmlContext>
+#include <QOpenGLContext>
+#include <QQuickWindow>
+
+
 
 #include <Plasma/Theme>
 
@@ -1820,6 +1825,146 @@ EffectWindowList EffectWindowGroupImpl::members() const
     return ret;
 }
 
+//*********************
+// EffectQuickViewImp
+//**********************
+
+class EffectQuickView::Private
+{
+public:
+    QQmlContext *m_context;
+//     QQmlEngine *m_engine;
+    QQuickWindow *m_view;
+    QQuickRenderControl *m_renderControl;
+    QScopedPointer<QOpenGLContext> m_glcontext;
+    QScopedPointer<QOffscreenSurface> m_offscreenSurface;
+    QScopedPointer<QOpenGLFramebufferObject> m_fbo;
+    bool m_asImage; //if we should capture a QImage after rendering into our BO. Used for either software QtQuick rendering and nonGL kwin rendering
+    QImage m_image;
+};
+
+
+EffectQuickView::EffectQuickView(QObject* parent):
+    QObject(parent),
+    d(new EffectQuickView::Private)
+{
+    auto engine = Scripting::self()->engine();
+    d->m_context = new QQmlContext(engine, this);
+
+    d->m_renderControl = new QQuickRenderControl(this);
+    d->m_view = new QQuickWindow(d->m_renderControl);
+    d->m_view->setFlags(Qt::FramelessWindowHint);
+
+    QSurfaceFormat format;
+    format.setDepthBufferSize(16);
+    format.setStencilBufferSize(8);
+
+    m_asImage = false;
+    if (!Compositor::self()->scene()->compositingType() & OpenGLCompositing) {
+        m_asImage = true;
+    }
+//     if () {
+        // m_asImage = true;
+// }
+
+    d->m_glcontext.reset(new QOpenGLContext);
+    d->m_glcontext->setFormat(format);
+    d->m_glcontext->create();
+
+    // and the offscreen surface
+    d->m_offscreenSurface.reset(new QOffscreenSurface);
+    d->m_offscreenSurface->setFormat(d->m_glcontext->format());
+    d->m_offscreenSurface->create();
+
+    d->m_glcontext->makeCurrent(d->m_offscreenSurface.data());
+    d->m_renderControl->initialize(d->m_glcontext.data());
+    d->m_glcontext->doneCurrent();
+
+    QTimer *t = new QTimer(this);
+    t->setSingleShot(true);
+    t->setInterval(10);
+
+    //dave do we need the timer? syncing with scene would be better
+    connect(t, &QTimer::timeout, this, &EffectQuickView::update);
+    connect(d->m_renderControl, &QQuickRenderControl::renderRequested, t, [t]() {
+        t->start();
+    });
+    connect(d->m_renderControl, &QQuickRenderControl::sceneChanged, t, [t]() {
+        t->start();
+    });
+
+    d->m_view->setGeometry(QRect(10,10,200,220));
+}
+
+void EffectQuickView::setSource(const QUrl &source)
+{
+    QScopedPointer<QQmlComponent> comp(new QQmlComponent(d->m_engine));
+    comp->loadUrl(source);
+
+    QQuickItem *item = qobject_cast<QQuickItem*>(comp->create(d->m_context));
+    if (!item) {
+        qDebug() << "Could not load effect quick view" << source;
+        return;
+    }
+    item->setParent(d->m_view);
+    item->setParentItem(d->m_view->contentItem());
+}
+
+
+void EffectQuickView::update()
+{
+    d->m_glcontext->makeCurrent(d->m_offscreenSurface.data());
+
+    if (d->m_fbo.isNull() || d->m_fbo->size() != d->m_view->size()) {
+        qDebug() << d->m_view->size();
+        d->m_fbo.reset(new QOpenGLFramebufferObject(d->m_view->size(), QOpenGLFramebufferObject::CombinedDepthStencil));
+        if (!d->m_fbo->isValid()) {
+            d->m_fbo.reset();
+            d->m_glcontext->doneCurrent();
+            return;
+        }
+    }
+    d->m_view->setRenderTarget(d->m_fbo.data());
+
+    d->m_renderControl->polishItems();//DAVE - optimise
+    d->m_renderControl->sync();
+
+    d->m_renderControl->render();
+    d->m_view->resetOpenGLState();
+    if (m_asImage) {
+        m_image = m_renderControl->grab();
+    }
+    d->m_glcontext->doneCurrent();
+    QOpenGLFramebufferObject::bindDefault();
+    effects->addRepaint(d->m_view->geometry());
+}
+
+void EffectQuickView::render()
+{
+//     scene->render(this);
+}
+
+
+QRect EffectQuickView::geometry() const
+{
+    return d->m_view->geometry();
+}
+
+QSize EffectQuickView::size() const
+{
+    return d->m_view->geometry().size();
+}
+
+void EffectQuickView::setGeometry(const QRect& rect)
+{
+    const QRect oldGeom = d->m_view->geometry();
+    if (oldGeom.isValid()) {
+        effects->addRepaint(oldGeom);
+    }
+    effects->addRepaint(rect);
+    d->m_view->setGeometry(rect);
+}
+
 //****************************************
 // EffectFrameImpl
 //****************************************
@@ -1835,21 +1980,13 @@ EffectFrameImpl::EffectFrameImpl(EffectFrameStyle style, bool staticSize, QPoint
     , m_theme(new Plasma::Theme(this))
 {
     if (m_style == EffectFrameStyled) {
-        m_frame.setImagePath(QStringLiteral("widgets/background"));
-        m_frame.setCacheAllRenderedFrames(true);
-        connect(m_theme, SIGNAL(themeChanged()), this, SLOT(plasmaThemeChanged()));
+//         setSource()
     }
-    m_selection.setImagePath(QStringLiteral("widgets/viewitem"));
-    m_selection.setElementPrefix(QStringLiteral("hover"));
-    m_selection.setCacheAllRenderedFrames(true);
-    m_selection.setEnabledBorders(Plasma::FrameSvg::AllBorders);
-
-    m_sceneFrame = Compositor::self()->scene()->createEffectFrame(this);
+//     setSource()
 }
 
 EffectFrameImpl::~EffectFrameImpl()
 {
-    delete m_sceneFrame;
 }
 
 const QFont& EffectFrameImpl::font() const
@@ -1863,25 +2000,9 @@ void EffectFrameImpl::setFont(const QFont& font)
         return;
     }
     m_font = font;
-    QRect oldGeom = m_geometry;
-    if (!m_text.isEmpty()) {
-        autoResize();
-    }
-    if (oldGeom == m_geometry) {
-        // Wasn't updated in autoResize()
-        m_sceneFrame->freeTextFrame();
-    }
+    emit fontChanged();
 }
 
-void EffectFrameImpl::free()
-{
-    m_sceneFrame->free();
-}
-
-const QRect& EffectFrameImpl::geometry() const
-{
-    return m_geometry;
-}
 
 void EffectFrameImpl::setGeometry(const QRect& geometry, bool force)
 {
@@ -1890,19 +2011,10 @@ void EffectFrameImpl::setGeometry(const QRect& geometry, bool force)
     if (m_geometry == oldGeom && !force) {
         return;
     }
+    //DAVE - need to handle this repaint crap better - ideally inside EffectQuickView
     effects->addRepaint(oldGeom);
     effects->addRepaint(m_geometry);
-    if (m_geometry.size() == oldGeom.size() && !force) {
-        return;
-    }
 
-    if (m_style == EffectFrameStyled) {
-        qreal left, top, right, bottom;
-        m_frame.getMargins(left, top, right, bottom);   // m_geometry is the inner geometry
-        m_frame.resizeFrame(m_geometry.adjusted(-left, -top, right, bottom).size());
-    }
-
-    free();
 }
 
 const QIcon& EffectFrameImpl::icon() const
@@ -1913,13 +2025,9 @@ const QIcon& EffectFrameImpl::icon() const
 void EffectFrameImpl::setIcon(const QIcon& icon)
 {
     m_icon = icon;
-    if (isCrossFade()) {
-        m_sceneFrame->crossFadeIcon();
-    }
     if (m_iconSize.isEmpty() && !m_icon.availableSizes().isEmpty()) { // Set a size if we don't already have one
         setIconSize(m_icon.availableSizes().first());
     }
-    m_sceneFrame->freeIconFrame();
 }
 
 const QSize& EffectFrameImpl::iconSize() const
@@ -1933,37 +2041,23 @@ void EffectFrameImpl::setIconSize(const QSize& size)
         return;
     }
     m_iconSize = size;
-    autoResize();
-    m_sceneFrame->freeIconFrame();
-}
-
-void EffectFrameImpl::plasmaThemeChanged()
-{
-    free();
+    emit iconSizeChanged();
 }
 
 void EffectFrameImpl::render(QRegion region, double opacity, double frameOpacity)
 {
-    if (m_geometry.isEmpty()) {
-        return; // Nothing to display
-    }
-    m_shader = NULL;
-    setScreenProjectionMatrix(static_cast<EffectsHandlerImpl*>(effects)->scene()->screenProjectionMatrix());
-    effects->paintEffectFrame(this, region, opacity, frameOpacity);
+    //this is no longer relevant for QQuickViews, but kept for ABI compatibility
 }
 
 void EffectFrameImpl::finalRender(QRegion region, double opacity, double frameOpacity) const
 {
-    region = infiniteRegion(); // TODO: Old region doesn't seem to work with OpenGL
-
-    m_sceneFrame->render(region, opacity, frameOpacity);
+    //this is no longer relevant for QQuickViews, but kept for ABI compatibility
 }
 
 Qt::Alignment EffectFrameImpl::alignment() const
 {
     return m_alignment;
 }
-
 
 void
 EffectFrameImpl::align(QRect &geometry)
@@ -2008,16 +2102,8 @@ void EffectFrameImpl::setText(const QString& text)
     if (m_text == text) {
         return;
     }
-    if (isCrossFade()) {
-        m_sceneFrame->crossFadeText();
-    }
     m_text = text;
-    QRect oldGeom = m_geometry;
-    autoResize();
-    if (oldGeom == m_geometry) {
-        // Wasn't updated in autoResize()
-        m_sceneFrame->freeTextFrame();
-    }
+    emit textChanged();
 }
 
 void EffectFrameImpl::setSelection(const QRect& selection)
@@ -2026,11 +2112,9 @@ void EffectFrameImpl::setSelection(const QRect& selection)
         return;
     }
     m_selectionGeometry = selection;
-    if (m_selectionGeometry.size() != m_selection.frameSize().toSize()) {
-        m_selection.resizeFrame(m_selectionGeometry.size());
-    }
+    emit selectionGeometryChanged();
     // TODO; optimize to only recreate when resizing
-    m_sceneFrame->freeSelection();
+//     m_sceneFrame->freeSelection();
 }
 
 void EffectFrameImpl::autoResize()
@@ -2052,11 +2136,6 @@ void EffectFrameImpl::autoResize()
 
     align(geometry);
     setGeometry(geometry);
-}
-
-QColor EffectFrameImpl::styledTextColor()
-{
-    return m_theme->color(Plasma::Theme::TextColor);
 }
 
 } // namespace
