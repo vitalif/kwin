@@ -216,6 +216,8 @@ void ShellClient::init()
     connect(s, &SurfaceInterface::destroyed, this, &ShellClient::destroyClient);
     if (m_shellSurface) {
         initSurface(m_shellSurface);
+        // TODO: verify grab serial
+        m_hasPopupGrab = m_shellSurface->isPopup();
     } else if (m_xdgShellSurface) {
         initSurface(m_xdgShellSurface);
 
@@ -277,12 +279,11 @@ void ShellClient::init()
         connect(this, &AbstractClient::clientStartUserMovedResized, this, configure);
         connect(this, &AbstractClient::clientFinishUserMovedResized, this, configure);
     } else if (m_xdgShellPopup) {
-        qDebug() << "setting up popup";
-        //TODO - should probably check the parent had focus and whatever
-        //can maybe just call setFocus() or something
-        connect(m_xdgShellPopup, &XdgShellPopupInterface::grabbed, this, [this](SeatInterface *seat, quint32 serial) {
+        connect(m_xdgShellPopup, &XdgShellPopupInterface::grabRequested, this, [this](SeatInterface *seat, quint32 serial) {
+            Q_UNUSED(seat)
             Q_UNUSED(serial)
-            seat->setFocusedPointerSurface(surface());
+            //TODO - should check the parent had focus
+            m_hasPopupGrab = true;
         });
 
         QRect position = QRect(m_xdgShellPopup->transientOffset(), m_xdgShellPopup->initialSize());
@@ -1555,11 +1556,7 @@ void ShellClient::updateApplicationMenu()
 
 bool ShellClient::hasPopupGrab() const
 {
-    if (m_shellSurface) {
-        // TODO: verify grab serial
-        return m_shellSurface->isPopup();
-    }
-    return false;
+    return m_hasPopupGrab;
 }
 
 void ShellClient::popupDone()
