@@ -248,9 +248,6 @@ void ShellClient::init()
                 auto it = m_pingSerials.find(serial);
                 if (it != m_pingSerials.end()) {
                     setUnresponsive(false);
-                    if (it.value() == CloseWindow && m_xdgShellSurface) {
-                        m_xdgShellSurface->close();
-                    }
                     m_pingSerials.erase(it);
                 }
             });
@@ -611,6 +608,7 @@ QString ShellClient::caption(bool full) const
 void ShellClient::closeWindow()
 {
     if (m_xdgShellSurface && isCloseable()) {
+        m_xdgShellSurface->close();
         const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping(m_xdgShellSurface);
         m_pingSerials.insert(pingSerial, CloseWindow);
     } else if (m_qtExtendedSurface && isCloseable()) {
@@ -867,9 +865,11 @@ void ShellClient::setOnAllActivities(bool set)
 
 void ShellClient::takeFocus()
 {
-    if (m_xdgShellSurface && rules()->checkAcceptFocus(wantsInput())) {
-        const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping(m_xdgShellSurface);
-        m_pingSerials.insert(pingSerial, FocusWindow);
+    if (rules()->checkAcceptFocus(wantsInput())) {
+        if (m_xdgShellSurface) {
+            const qint32 pingSerial = static_cast<XdgShellInterface *>(m_xdgShellSurface->global())->ping(m_xdgShellSurface);
+            m_pingSerials.insert(pingSerial, FocusWindow);
+        }
         setActive(true);
     }
 
