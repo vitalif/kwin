@@ -79,6 +79,7 @@ install(TARGETS kwineffects EXPORT kdeworkspaceLibraryTargets ${INSTALL_TARGETS_
 # kwingl(es)utils library
 set(kwin_GLUTILSLIB_SRCS
     kwinglutils.cpp
+    kwinglrenderbuffer.cpp
     kwingltexture.cpp
     kwinglutils_funcs.cpp
     kwinglplatform.cpp
