@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KWin
 {
+class GLRenderbuffer;
 class LanczosFilter;
 class OpenGLBackend;
 class SyncManager;
@@ -96,6 +97,9 @@ protected:
     virtual void doPaintBackground(const QVector<float> &vertices) = 0;
     virtual void updateProjectionMatrix() = 0;
 
+    void finalPrePaintScreen(ScreenPrePaintData& data, int time) override;
+    void finalPostPaintScreen() override;
+
 protected:
     bool init_ok;
 private:
@@ -105,6 +109,12 @@ private:
     OpenGLBackend *m_backend;
     SyncManager *m_syncManager;
     SyncObject *m_currentFence;
+    struct {
+        bool pushed = false;
+        int samples = 0;
+        GLRenderbuffer *rbo = nullptr;
+        GLRenderTarget *fbo = nullptr;
+    } m_multisampling;
 };
 
 class SceneOpenGL2 : public SceneOpenGL

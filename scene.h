@@ -124,8 +124,12 @@ public:
         PAINT_SCREEN_BACKGROUND_FIRST = 1 << 6,
         // PAINT_DECORATION_ONLY = 1 << 7 has been removed
         // Window will be painted with a lanczos filter.
-        PAINT_WINDOW_LANCZOS = 1 << 8
+        PAINT_WINDOW_LANCZOS = 1 << 8,
         // PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS_WITHOUT_FULL_REPAINTS = 1 << 9 has been removed
+        /**
+         * Use multisampling.
+         **/
+        PAINT_SCREEN_MULTISAMPLE = 1 << 10
     };
     // types of filtering available
     enum ImageFilterType { ImageFilterFast, ImageFilterGood };
@@ -205,8 +209,12 @@ protected:
     // Render cursor texture in case hardware cursor is disabled/non-applicable
     virtual void paintCursor() = 0;
     friend class EffectsHandlerImpl;
+    // called after all effects had their prePaintScreen() called
+    virtual void finalPrePaintScreen(ScreenPrePaintData& data, int time);
     // called after all effects had their paintScreen() called
     void finalPaintScreen(int mask, QRegion region, ScreenPaintData& data);
+    // called after all effects had their postPaintScreen() called
+    virtual void finalPostPaintScreen();
     // shared implementation of painting the screen in the generic
     // (unoptimized) way
     virtual void paintGenericScreen(int mask, ScreenPaintData data);

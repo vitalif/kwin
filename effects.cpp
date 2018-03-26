@@ -366,8 +366,9 @@ void EffectsHandlerImpl::prePaintScreen(ScreenPrePaintData& data, int time)
     if (m_currentPaintScreenIterator != m_activeEffects.constEnd()) {
         (*m_currentPaintScreenIterator++)->prePaintScreen(data, time);
         --m_currentPaintScreenIterator;
+    } else {
+        m_scene->finalPrePaintScreen(data, time);
     }
-    // no special final code
 }
 
 void EffectsHandlerImpl::paintScreen(int mask, QRegion region, ScreenPaintData& data)
@@ -400,8 +401,9 @@ void EffectsHandlerImpl::postPaintScreen()
     if (m_currentPaintScreenIterator != m_activeEffects.constEnd()) {
         (*m_currentPaintScreenIterator++)->postPaintScreen();
         --m_currentPaintScreenIterator;
+    } else {
+        m_scene->finalPostPaintScreen();
     }
-    // no special final code
 }
 
 void EffectsHandlerImpl::prePaintWindow(EffectWindow* w, WindowPrePaintData& data, int time)

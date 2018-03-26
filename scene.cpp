@@ -192,6 +192,14 @@ void Scene::idle()
     last_time.invalidate();
 }
 
+// finalPrePaintScreen() will be eventually called after all effects
+// had their prePaintScreen() called.
+void Scene::finalPrePaintScreen(ScreenPrePaintData& data, int time)
+{
+    Q_UNUSED(data);
+    Q_UNUSED(time);
+}
+
 // the function that'll be eventually called by paintScreen() above
 void Scene::finalPaintScreen(int mask, QRegion region, ScreenPaintData& data)
 {
@@ -199,6 +207,12 @@ void Scene::finalPaintScreen(int mask, QRegion region, ScreenPaintData& data)
         paintGenericScreen(mask, data);
     else
         paintSimpleScreen(mask, region);
+}
+
+// finalPostPaintScreen() will be eventually called after all effects
+// had their postPaintScreen() called.
+void Scene::finalPostPaintScreen()
+{
 }
 
 // The generic painting code that can handle even transformations.
