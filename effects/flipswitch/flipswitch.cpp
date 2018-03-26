@@ -101,12 +101,16 @@ void FlipSwitchEffect::reconfigure(ReconfigureFlags)
     m_xPosition = FlipSwitchConfig::xPosition() / 100.0f;
     m_yPosition = FlipSwitchConfig::yPosition() / 100.0f;
     m_windowTitle = FlipSwitchConfig::windowTitle();
+    m_multisampling = FlipSwitchConfig::multisampling();
 }
 
 void FlipSwitchEffect::prePaintScreen(ScreenPrePaintData& data, int time)
 {
     if (m_active) {
         data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
+        if (m_multisampling) {
+            data.mask |= PAINT_SCREEN_MULTISAMPLE;
+        }
         if (m_start)
             m_startStopTimeLine.setCurrentTime(m_startStopTimeLine.currentTime() + time);
         if (m_stop && m_scheduledDirections.isEmpty())

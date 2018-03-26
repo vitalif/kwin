@@ -38,5 +38,8 @@
         <entry name="TabBoxAlternative" type="Bool">
             <default>false</default>
         </entry>
+        <entry name="Multisampling" type="Bool">
+            <default>true</default>
+        </entry>
     </group>
 </kcfg>

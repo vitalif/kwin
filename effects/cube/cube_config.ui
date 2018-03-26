@@ -14,7 +14,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -30,7 +30,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Background color:</string>
+             <string>&amp;Background color:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -53,7 +53,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Wallpaper:</string>
+             <string>Wa&amp;llpaper:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -83,15 +83,12 @@
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="0" colspan="2">
-           <widget class="KShortcutsEditor" name="editor" native="true">
+           <widget class="KShortcutsEditor" name="editor">
             <property name="minimumSize">
              <size>
               <width>0</width>
               <height>200</height>
              </size>
-            </property>
-            <property name="actionTypes">
-              <enum>KShortcutsEditor::GlobalAction</enum>
             </property>
            </widget>
           </item>
@@ -121,7 +118,7 @@
           <item row="3" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Rotation duration:</string>
+             <string>Rotat&amp;ion duration:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -295,7 +292,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="capColorLabel">
             <property name="text">
-             <string>Cap color:</string>
+             <string>Cap co&amp;lor:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -440,6 +437,13 @@ otherwise it will remain active</string>
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_Multisampling">
+            <property name="text">
+             <string>Use multisampling</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -493,21 +497,21 @@ otherwise it will remain active</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>KColorButton</class>
-   <extends>QPushButton</extends>
-   <header>kcolorbutton.h</header>
+   <class>KShortcutsEditor</class>
+   <extends>QWidget</extends>
+   <header>kshortcutseditor.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>KUrlRequester</class>
-   <extends>QFrame</extends>
+   <extends>QWidget</extends>
    <header>kurlrequester.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>KShortcutsEditor</class>
-   <extends>QWidget</extends>
-   <header location="global">KShortcutsEditor</header>
-   <container>1</container>
+   <class>KColorButton</class>
+   <extends>QPushButton</extends>
+   <header>kcolorbutton.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

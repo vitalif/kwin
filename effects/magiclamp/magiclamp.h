@@ -62,6 +62,7 @@ private:
     QHash< EffectWindow*, QTimeLine* > mTimeLineWindows;
     int mActiveAnimations;
     int mAnimationDuration;
+    bool mMultisampling;
 
     enum IconPosition {
         Top,

@@ -18,7 +18,7 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -69,7 +69,7 @@
    <item row="0" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Rotation duration:</string>
+      <string>Ro&amp;tation duration:</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -90,6 +90,13 @@
     <widget class="QCheckBox" name="kcfg_UseWindowMoving">
      <property name="text">
       <string>Start animation when moving windows towards screen edges</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QCheckBox" name="kcfg_Multisampling">
+     <property name="text">
+      <string>Use multisampling</string>
      </property>
     </widget>
    </item>

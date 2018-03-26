@@ -624,19 +624,12 @@ void BlurEffect::doBlur(const QRegion& shape, const QRect& screen, const float o
      * We want to avoid this on panels, because it looks really weird and ugly
      * when maximized windows or windows near the panel affect the dock blur.
      */
-    isDock ? m_renderTextures.last().bind() : m_renderTextures[0].bind();
+    GLTexture& copyTexture = isDock ? m_renderTextures.last() : m_renderTextures.first();
 
     QRect copyRect = expandedBlurRegion.boundingRect() & screen;
-    glCopyTexSubImage2D(
-        GL_TEXTURE_2D,
-        0,
-        copyRect.x(),
-        effects->virtualScreenSize().height() - copyRect.y() - copyRect.height(),
-        copyRect.x(),
-        effects->virtualScreenSize().height() - copyRect.y() - copyRect.height(),
-        copyRect.width(),
-        copyRect.height()
-    );
+    GLRenderTarget copyTarget(copyTexture);
+    copyTarget.blitFromFramebuffer(copyRect);
+    copyTexture.bind();
 
     GLRenderTarget::pushRenderTargets(m_renderTargetStack);
     int blurRectCount = expandedBlurRegion.rectCount() * 6;

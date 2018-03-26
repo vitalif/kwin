@@ -8,5 +8,8 @@
         <entry name="AnimationDuration" type="Int">
             <default>0</default>
         </entry>
+        <entry name="Multisampling" type="Bool">
+            <default>true</default>
+        </entry>
     </group>
 </kcfg>

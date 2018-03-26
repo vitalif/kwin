@@ -64,12 +64,16 @@ void CubeSlideEffect::reconfigure(ReconfigureFlags)
     dontSlideStickyWindows = CubeSlideConfig::dontSlideStickyWindows();
     usePagerLayout = CubeSlideConfig::usePagerLayout();
     useWindowMoving = CubeSlideConfig::useWindowMoving();
+    multisampling = CubeSlideConfig::multisampling();
 }
 
 void CubeSlideEffect::prePaintScreen(ScreenPrePaintData& data, int time)
 {
     if (!slideRotations.empty()) {
         data.mask |= PAINT_SCREEN_TRANSFORMED | Effect::PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS | PAINT_SCREEN_BACKGROUND_FIRST;
+        if (multisampling) {
+            data.mask |= PAINT_SCREEN_MULTISAMPLE;
+        }
         timeLine.setCurrentTime(timeLine.currentTime() + time);
         if (windowMoving && timeLine.currentTime() > progressRestriction * (qreal)timeLine.duration())
             timeLine.setCurrentTime(progressRestriction * (qreal)timeLine.duration());

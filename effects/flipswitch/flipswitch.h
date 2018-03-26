@@ -144,6 +144,7 @@ private:
     float m_xPosition;
     float m_yPosition;
     bool m_windowTitle;
+    bool m_multisampling;
     // Shortcuts
     QList<QKeySequence> m_shortcutCurrent;
     QList<QKeySequence> m_shortcutAll;

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>453</width>
-    <height>270</height>
+    <height>289</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -18,6 +18,13 @@
      </property>
      <property name="shortcut">
       <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="kcfg_Multisampling">
+     <property name="text">
+      <string>Use multisampling</string>
      </property>
     </widget>
    </item>
@@ -136,7 +143,7 @@
          <item row="0" column="0">
           <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Animation duration:</string>
+            <string>A&amp;nimation duration:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

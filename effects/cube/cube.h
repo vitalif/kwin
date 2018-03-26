@@ -189,6 +189,7 @@ private:
     bool verticalRotating;
     bool desktopChangedWhileRotating;
     bool paintCaps;
+    bool multisampling;
     QTimeLine timeLine;
     QTimeLine verticalTimeLine;
     RotationDirection rotationDirection;

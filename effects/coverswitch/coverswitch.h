@@ -129,6 +129,7 @@ private:
     bool start;
     bool stop;
     bool reflection;
+    bool multisampling;
     float mirrorColor[2][4];
     bool windowTitle;
     int animationDuration;

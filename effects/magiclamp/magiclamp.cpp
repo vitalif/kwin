@@ -52,6 +52,7 @@ void MagicLampEffect::reconfigure(ReconfigureFlags)
     MagicLampConfig::self()->read();
     // TODO: rename animationDuration to duration
     mAnimationDuration = animationTime(MagicLampConfig::animationDuration() != 0 ? MagicLampConfig::animationDuration() : 250);
+    mMultisampling = MagicLampConfig::multisampling();
 }
 
 void MagicLampEffect::prePaintScreen(ScreenPrePaintData& data, int time)
@@ -76,10 +77,14 @@ void MagicLampEffect::prePaintScreen(ScreenPrePaintData& data, int time)
     }
 
     mActiveAnimations = mTimeLineWindows.count();
-    if (mActiveAnimations > 0)
+    if (mActiveAnimations > 0) {
         // We need to mark the screen windows as transformed. Otherwise the
         //  whole screen won't be repainted, resulting in artefacts
         data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
+        if (mMultisampling) {
+            data.mask |= PAINT_SCREEN_MULTISAMPLE;
+        }
+    }
 
     effects->prePaintScreen(data, time);
 }

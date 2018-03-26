@@ -26,5 +26,8 @@
         <entry name="WindowTitle" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="Multisampling" type="Bool">
+            <default>true</default>
+        </entry>
     </group>
 </kcfg>

@@ -93,6 +93,7 @@ void CoverSwitchEffect::reconfigure(ReconfigureFlags)
     animateStart      = CoverSwitchConfig::animateStart();
     animateStop       = CoverSwitchConfig::animateStop();
     reflection        = CoverSwitchConfig::reflection();
+    multisampling     = CoverSwitchConfig::multisampling();
     windowTitle       = CoverSwitchConfig::windowTitle();
     zPosition         = CoverSwitchConfig::zPosition();
     timeLine.setCurveShape(QTimeLine::EaseInOutCurve);
@@ -119,6 +120,9 @@ void CoverSwitchEffect::prePaintScreen(ScreenPrePaintData& data, int time)
 {
     if (mActivated || stop || stopRequested) {
         data.mask |= Effect::PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
+        if (multisampling) {
+            data.mask |= Effect::PAINT_SCREEN_MULTISAMPLE;
+        }
         if (animation || start || stop) {
             timeLine.setCurrentTime(timeLine.currentTime() + time);
         }

@@ -447,11 +447,10 @@ void ContrastEffect::doContrast(EffectWindow *w, const QRegion& shape, const QRe
     GLTexture scratch(GL_RGBA8, r.width() * scale, r.height() * scale);
     scratch.setFilter(GL_LINEAR);
     scratch.setWrapMode(GL_CLAMP_TO_EDGE);
-    scratch.bind();
 
-    const QRect sg = GLRenderTarget::virtualScreenGeometry();
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (r.x() - sg.x()) * scale, (sg.height() - sg.y() - r.y() - r.height()) * scale,
-                        scratch.width(), scratch.height());
+    GLRenderTarget scratchTarget(scratch);
+    scratchTarget.blitFromFramebuffer(r);
+    scratch.bind();
 
     // Draw the texture on the offscreen framebuffer object, while blurring it horizontally
 
