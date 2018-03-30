@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "kwinglutils.h"
 
+#include "kwinglrenderbuffer.h"
 // need to call GLTexturePrivate::initStatic()
 #include "kwingltexture_p.h"
 
@@ -1143,6 +1144,15 @@ GLRenderTarget::GLRenderTarget(const GLTexture& texture)
     attachTexture(texture);
 }
 
+GLRenderTarget::GLRenderTarget(const GLRenderbuffer& renderbuffer)
+{
+    if (! s_supported) {
+        qCCritical(LIBKWINGLUTILS) << "Render targets aren't supported!";
+        return;
+    }
+    attachRenderbuffer(renderbuffer);
+}
+
 GLRenderTarget::~GLRenderTarget()
 {
     if (m_valid) {
@@ -1265,6 +1275,66 @@ void GLRenderTarget::attachTexture(const GLTexture& texture)
     m_valid = true;
 }
 
+void GLRenderTarget::attachRenderbuffer(const GLRenderbuffer& renderbuffer)
+{
+#if DEBUG_GLRENDERTARGET
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR)
+        qCCritical(LIBKWINGLUTILS) << "Error status when entering GLRenderTarget::initFBO: " << formatGLError(err);
+#endif
+
+    glGenFramebuffers(1, &m_framebuffer);
+
+#if DEBUG_GLRENDERTARGET
+    if ((err = glGetError()) != GL_NO_ERROR) {
+        qCCritical(LIBKWINGLUTILS) << "glGenFramebuffers failed: " << formatGLError(err);
+        return;
+    }
+#endif
+
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+
+#if DEBUG_GLRENDERTARGET
+    if ((err = glGetError()) != GL_NO_ERROR) {
+        qCCritical(LIBKWINGLUTILS) << "glBindFramebuffer failed: " << formatGLError(err);
+        glDeleteFramebuffers(1, &m_framebuffer);
+        return;
+    }
+#endif
+
+    glFramebufferRenderbuffer(
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT0,
+        renderbuffer.target(),
+        renderbuffer.renderbuffer());
+
+#if DEBUG_GLRENDERTARGET
+    if ((err = glGetError()) != GL_NO_ERROR) {
+        qCCritical(LIBKWINGLUTILS) << "glFramebufferRenderbuffer failed: " << formatGLError(err);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &m_framebuffer);
+        return;
+    }
+#endif
+
+    const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        if (status == 0) {
+            qCCritical(LIBKWINGLUTILS) << "glCheckFramebufferStatus failed: " << formatGLError(glGetError());
+        } else {
+            qCCritical(LIBKWINGLUTILS) << "Invalid framebuffer status: " << formatFramebufferStatus(status);
+        }
+        glDeleteFramebuffers(1, &m_framebuffer);
+        return;
+    }
+
+    m_viewport = QRect(0, 0, renderbuffer.width(), renderbuffer.height());
+    m_valid = true;
+}
+
 void GLRenderTarget::blitFromFramebuffer(const QRect &source, const QRect &destination, GLenum filter)
 {
     if (!GLRenderTarget::blitSupported()) {
@@ -1292,6 +1362,45 @@ void GLRenderTarget::blitFromFramebuffer(const QRect &source, const QRect &desti
     GLRenderTarget::popRenderTarget();
 }
 
+void GLRenderTarget::blitToScreen(const QRect &source, const QRect &destination, GLenum filter)
+{
+    if (! GLRenderTarget::blitSupported()) {
+        qCCritical(LIBKWINGLUTILS) << "Blit is not supported!";
+        return;
+    }
+
+    if (! m_valid) {
+        qCCritical(LIBKWINGLUTILS) << "Can't blit from invalid render target!";
+        return;
+    }
+
+    const QRect src = source.isNull() ? m_viewport : source;
+    const int srcX0 = src.x();
+    const int srcY0 = m_viewport.height() - src.y() - src.height();
+    const int srcX1 = src.x() + src.width();
+    const int srcY1 = m_viewport.height() - src.y();
+
+    const QRect dst = destination.isNull()
+        ? s_virtualScreenGeometry
+        : destination;
+    const int dstFbo = s_renderTargets.isEmpty() ? 0 : s_renderTargets.top()->m_framebuffer;
+
+    // TODO: take viewport into account.
+    const QRect screenGeo(s_virtualScreenGeometry);
+    const qreal screenScale = s_virtualScreenScale;
+    const int dstX0 = (dst.x() - screenGeo.x()) * screenScale;
+    const int dstY0 = (screenGeo.height() - screenGeo.y() - dst.y() - dst.height()) * screenScale;
+    const int dstX1 = (dst.x() - screenGeo.x() + dst.width()) * screenScale;
+    const int dstY1 = (screenGeo.height() - screenGeo.y() - dst.y()) * screenScale;
+
+    GLRenderTarget::pushRenderTarget(this);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dstFbo);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_framebuffer);
+    glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1,
+                      dstX0, dstY0, dstX1, dstY1,
+                      GL_COLOR_BUFFER_BIT, filter);
+    GLRenderTarget::popRenderTarget();
+}
 
 // ------------------------------------------------------------------
 

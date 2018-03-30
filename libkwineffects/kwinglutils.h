@@ -45,6 +45,7 @@ template< class K, class V > class QHash;
 namespace KWin
 {
 
+class GLRenderbuffer;
 class GLVertexBuffer;
 class GLVertexBufferPrivate;
 
@@ -422,6 +423,11 @@ public:
      * @param texture texture where the scene will be rendered onto
      **/
     explicit GLRenderTarget(const GLTexture& texture);
+    /**
+     * Constructs a GLRenderTarget
+     * @param renderbuffer renderbuffer where the scene will be rendered onto
+     **/
+    explicit GLRenderTarget(const GLRenderbuffer& renderbuffer);
     ~GLRenderTarget();
 
     /**
@@ -482,8 +488,23 @@ public:
      * @param filter The filter to use if blitted content needs to be scaled.
      * @see blitSupported
      * @since 4.8
+     *
+     * TODO: blitFromScreen makes more sense.
      **/
     void blitFromFramebuffer(const QRect &source = QRect(), const QRect &destination = QRect(), GLenum filter = GL_LINEAR);
+
+    /**
+     * Blits the content of the render target into the default framebuffer.
+     *
+     * Be aware that framebuffer blitting may not be supported on all hardware. Use @link blitSupported to check whether
+     * it is supported.
+     * @param source Geometry in attached render target, if not specified complete texture is used as destination
+     * @param destination Geometry in screen coordinates which should be blitted, if not specified complete framebuffer is used
+     * @param filter The filter to use if blitted content needs to be scaled.
+     * @see blitSupported
+     * @since X.XX
+     **/
+    void blitToScreen(const QRect &source = QRect(), const QRect &destination = QRect(), GLenum filter = GL_LINEAR);
 
     /**
      * Sets the virtual screen size to @p s.
@@ -542,6 +563,7 @@ private:
     static GLint s_virtualScreenViewport[4];
 
 private:
+    void attachRenderbuffer(const GLRenderbuffer& renderbuffer);
     void attachTexture(const GLTexture& texture);
 
 private:
