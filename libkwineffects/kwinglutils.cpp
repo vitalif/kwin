@@ -1047,7 +1047,7 @@ GLShader *ShaderManager::loadShaderFromCode(const QByteArray &vertexSource, cons
 //****************************************
 // GLRenderTarget
 //****************************************
-bool GLRenderTarget::sSupported = false;
+bool GLRenderTarget::s_supported = false;
 bool GLRenderTarget::s_blitSupported = false;
 QStack<GLRenderTarget*> GLRenderTarget::s_renderTargets = QStack<GLRenderTarget*>();
 QSize GLRenderTarget::s_virtualScreenSize;
@@ -1058,10 +1058,10 @@ GLint GLRenderTarget::s_virtualScreenViewport[4];
 void GLRenderTarget::initStatic()
 {
     if (GLPlatform::instance()->isGLES()) {
-        sSupported = true;
+        s_supported = true;
         s_blitSupported = hasGLVersion(3, 0);
     } else {
-        sSupported = hasGLVersion(3, 0) ||
+        s_supported = hasGLVersion(3, 0) ||
             hasGLExtension(QByteArrayLiteral("GL_ARB_framebuffer_object")) ||
             hasGLExtension(QByteArrayLiteral("GL_EXT_framebuffer_object"));
 
@@ -1074,7 +1074,7 @@ void GLRenderTarget::initStatic()
 void GLRenderTarget::cleanup()
 {
     Q_ASSERT(s_renderTargets.isEmpty());
-    sSupported = false;
+    s_supported = false;
     s_blitSupported = false;
 }
 
@@ -1136,7 +1136,7 @@ GLRenderTarget* GLRenderTarget::popRenderTarget()
 
 GLRenderTarget::GLRenderTarget(const GLTexture& texture)
 {
-    if (!sSupported || texture.isNull()) {
+    if (!s_supported || texture.isNull()) {
         qCCritical(LIBKWINGLUTILS) << "Render targets aren't supported!";
         return;
     }
@@ -1145,27 +1145,27 @@ GLRenderTarget::GLRenderTarget(const GLTexture& texture)
 
 GLRenderTarget::~GLRenderTarget()
 {
-    if (mValid) {
-        glDeleteFramebuffers(1, &mFramebuffer);
+    if (m_valid) {
+        glDeleteFramebuffers(1, &m_framebuffer);
     }
 }
 
 bool GLRenderTarget::enable()
 {
-    if (!mValid) {
+    if (! m_valid) {
         qCCritical(LIBKWINGLUTILS) << "Can't enable invalid render target!";
         return false;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
-    glViewport(mViewport.x(), mViewport.y(), mViewport.width(), mViewport.height());
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+    glViewport(m_viewport.x(), m_viewport.y(), m_viewport.width(), m_viewport.height());
 
     return true;
 }
 
 bool GLRenderTarget::disable()
 {
-    if (!mValid) {
+    if (! m_valid) {
         qCCritical(LIBKWINGLUTILS) << "Can't disable invalid render target!";
         return false;
     }
@@ -1215,7 +1215,7 @@ void GLRenderTarget::attachTexture(const GLTexture& texture)
         qCCritical(LIBKWINGLUTILS) << "Error status when entering GLRenderTarget::initFBO: " << formatGLError(err);
 #endif
 
-    glGenFramebuffers(1, &mFramebuffer);
+    glGenFramebuffers(1, &m_framebuffer);
 
 #if DEBUG_GLRENDERTARGET
     if ((err = glGetError()) != GL_NO_ERROR) {
@@ -1224,12 +1224,12 @@ void GLRenderTarget::attachTexture(const GLTexture& texture)
     }
 #endif
 
-    glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
 #if DEBUG_GLRENDERTARGET
     if ((err = glGetError()) != GL_NO_ERROR) {
         qCCritical(LIBKWINGLUTILS) << "glBindFramebuffer failed: " << formatGLError(err);
-        glDeleteFramebuffers(1, &mFramebuffer);
+        glDeleteFramebuffers(1, &m_framebuffer);
         return;
     }
 #endif
@@ -1241,7 +1241,7 @@ void GLRenderTarget::attachTexture(const GLTexture& texture)
     if ((err = glGetError()) != GL_NO_ERROR) {
         qCCritical(LIBKWINGLUTILS) << "glFramebufferTexture2D failed: " << formatGLError(err);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDeleteFramebuffers(1, &mFramebuffer);
+        glDeleteFramebuffers(1, &m_framebuffer);
         return;
     }
 #endif
@@ -1252,16 +1252,17 @@ void GLRenderTarget::attachTexture(const GLTexture& texture)
 
     if (status != GL_FRAMEBUFFER_COMPLETE) {
         // We have an incomplete framebuffer, consider it invalid
-        if (status == 0)
+        if (status == 0) {
             qCCritical(LIBKWINGLUTILS) << "glCheckFramebufferStatus failed: " << formatGLError(glGetError());
-        else
+        } else {
             qCCritical(LIBKWINGLUTILS) << "Invalid framebuffer status: " << formatFramebufferStatus(status);
-        glDeleteFramebuffers(1, &mFramebuffer);
+        }
+        glDeleteFramebuffers(1, &m_framebuffer);
         return;
     }
 
-    mViewport = QRect(0, 0, texture.width(), texture.height());
-    mValid = true;
+    m_viewport = QRect(0, 0, texture.width(), texture.height());
+    m_valid = true;
 }
 
 void GLRenderTarget::blitFromFramebuffer(const QRect &source, const QRect &destination, GLenum filter)
@@ -1271,22 +1272,22 @@ void GLRenderTarget::blitFromFramebuffer(const QRect &source, const QRect &desti
         return;
     }
 
-    if (!mValid) {
+    if (! m_valid) {
         qCCritical(LIBKWINGLUTILS) << "Can't blit to invalid render target!";
         return;
     }
 
     GLRenderTarget::pushRenderTarget(this);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebuffer);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     const QRect s = source.isNull() ? s_virtualScreenGeometry : source;
-    const QRect d = destination.isNull() ? mViewport : destination;
+    const QRect d = destination.isNull() ? m_viewport : destination;
 
     glBlitFramebuffer((s.x() - s_virtualScreenGeometry.x()) * s_virtualScreenScale,
                       (s_virtualScreenGeometry.height() - s_virtualScreenGeometry.y() + s.y() - s.height()) * s_virtualScreenScale,
                       (s.x() - s_virtualScreenGeometry.x() + s.width()) * s_virtualScreenScale,
                       (s_virtualScreenGeometry.height() - s_virtualScreenGeometry.y() + s.y()) * s_virtualScreenScale,
-                      d.x(), mViewport.height() - d.y() - d.height(), d.x() + d.width(), mViewport.height() - d.y(),
+                      d.x(), m_viewport.height() - d.y() - d.height(), d.x() + d.width(), m_viewport.height() - d.y(),
                       GL_COLOR_BUFFER_BIT, filter);
     GLRenderTarget::popRenderTarget();
 }

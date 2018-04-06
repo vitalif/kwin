@@ -436,21 +436,21 @@ public:
      **/
     bool disable();
 
-    bool valid() const  {
-        return mValid;
+    bool valid() const {
+        return m_valid;
     }
 
     QRect viewport() const {
-        return mViewport;
+        return m_viewport;
     }
 
     void setViewport(const QRect& viewport) {
-        mViewport = viewport;
+        m_viewport = viewport;
     }
 
     static void initStatic();
-    static bool supported()  {
-        return sSupported;
+    static bool supported() {
+        return s_supported;
     }
 
     /**
@@ -533,7 +533,7 @@ private:
     static void cleanup();
 
 private:
-    static bool sSupported;
+    static bool s_supported;
     static bool s_blitSupported;
     static QStack<GLRenderTarget*> s_renderTargets;
     static QSize s_virtualScreenSize;
@@ -545,9 +545,9 @@ private:
     void attachTexture(const GLTexture& texture);
 
 private:
-    bool mValid = false;
-    QRect mViewport;
-    GLuint mFramebuffer;
+    bool m_valid = false;
+    QRect m_viewport;
+    GLuint m_framebuffer;
 
     friend void KWin::cleanupGL();
 };
