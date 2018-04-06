@@ -419,15 +419,9 @@ class KWINGLUTILS_EXPORT GLRenderTarget
 public:
     /**
      * Constructs a GLRenderTarget
-     * @since 5.13
+     * @param texture texture where the scene will be rendered onto
      **/
-    explicit GLRenderTarget();
-
-    /**
-     * Constructs a GLRenderTarget
-     * @param color texture where the scene will be rendered onto
-     **/
-    explicit GLRenderTarget(const GLTexture& color);
+    explicit GLRenderTarget(const GLTexture& texture);
     ~GLRenderTarget();
 
     /**
@@ -442,25 +436,16 @@ public:
      **/
     bool disable();
 
-    /**
-     * Sets the target texture
-     * @param target texture where the scene will be rendered on
-     * @since 4.8
-     **/
-    void attachTexture(const GLTexture& target);
-
-    /**
-     * Detaches the texture that is currently attached to this framebuffer object.
-     * @since 5.13
-     **/
-    void detachTexture();
-
     bool valid() const  {
         return mValid;
     }
 
-    void setTextureDirty() {
-        mTexture.setDirty();
+    QRect viewport() const {
+        return mViewport;
+    }
+
+    void setViewport(const QRect& viewport) {
+        mViewport = viewport;
     }
 
     static void initStatic();
@@ -473,10 +458,10 @@ public:
      * @param targets The stack of GLRenderTargets
      * @since 5.13
      **/
-    static void pushRenderTargets(QStack <GLRenderTarget*> targets);
-
     static void pushRenderTarget(GLRenderTarget *target);
+    static void pushRenderTargets(QStack <GLRenderTarget*> targets);
     static GLRenderTarget *popRenderTarget();
+
     static bool isRenderTargetBound();
     /**
      * Whether the GL_EXT_framebuffer_blit extension is supported.
@@ -544,14 +529,10 @@ public:
         return s_virtualScreenScale;
     }
 
-
-protected:
-    void initFBO();
-
+private:
+    static void cleanup();
 
 private:
-    friend void KWin::cleanupGL();
-    static void cleanup();
     static bool sSupported;
     static bool s_blitSupported;
     static QStack<GLRenderTarget*> s_renderTargets;
@@ -560,10 +541,15 @@ private:
     static qreal s_virtualScreenScale;
     static GLint s_virtualScreenViewport[4];
 
-    GLTexture mTexture;
-    bool mValid;
+private:
+    void attachTexture(const GLTexture& texture);
 
+private:
+    bool mValid = false;
+    QRect mViewport;
     GLuint mFramebuffer;
+
+    friend void KWin::cleanupGL();
 };
 
 enum VertexAttributeType {

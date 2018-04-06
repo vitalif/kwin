@@ -1044,7 +1044,9 @@ GLShader *ShaderManager::loadShaderFromCode(const QByteArray &vertexSource, cons
     return shader;
 }
 
-/***  GLRenderTarget  ***/
+//****************************************
+// GLRenderTarget
+//****************************************
 bool GLRenderTarget::sSupported = false;
 bool GLRenderTarget::s_blitSupported = false;
 QStack<GLRenderTarget*> GLRenderTarget::s_renderTargets = QStack<GLRenderTarget*>();
@@ -1121,37 +1123,24 @@ void GLRenderTarget::pushRenderTargets(QStack <GLRenderTarget*> targets)
 GLRenderTarget* GLRenderTarget::popRenderTarget()
 {
     GLRenderTarget* ret = s_renderTargets.pop();
-    ret->setTextureDirty();
 
     if (!s_renderTargets.isEmpty()) {
         s_renderTargets.top()->enable();
     } else {
         ret->disable();
-        glViewport (s_virtualScreenViewport[0], s_virtualScreenViewport[1], s_virtualScreenViewport[2], s_virtualScreenViewport[3]);
+        glViewport(s_virtualScreenViewport[0], s_virtualScreenViewport[1], s_virtualScreenViewport[2], s_virtualScreenViewport[3]);
     }
 
     return ret;
 }
 
-GLRenderTarget::GLRenderTarget()
+GLRenderTarget::GLRenderTarget(const GLTexture& texture)
 {
-    // Reset variables
-    mValid = false;
-    mTexture = GLTexture();
-}
-
-GLRenderTarget::GLRenderTarget(const GLTexture& color)
-{
-    // Reset variables
-    mValid = false;
-
-    mTexture = color;
-
-    // Make sure FBO is supported
-    if (sSupported && !mTexture.isNull()) {
-        initFBO();
-    } else
+    if (!sSupported || texture.isNull()) {
         qCCritical(LIBKWINGLUTILS) << "Render targets aren't supported!";
+        return;
+    }
+    attachTexture(texture);
 }
 
 GLRenderTarget::~GLRenderTarget()
@@ -1164,17 +1153,12 @@ GLRenderTarget::~GLRenderTarget()
 bool GLRenderTarget::enable()
 {
     if (!mValid) {
-        initFBO();
-    }
-
-    if (!valid()) {
         qCCritical(LIBKWINGLUTILS) << "Can't enable invalid render target!";
         return false;
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
-    glViewport(0, 0, mTexture.width(), mTexture.height());
-    mTexture.setDirty();
+    glViewport(mViewport.x(), mViewport.y(), mViewport.width(), mViewport.height());
 
     return true;
 }
@@ -1182,16 +1166,11 @@ bool GLRenderTarget::enable()
 bool GLRenderTarget::disable()
 {
     if (!mValid) {
-        initFBO();
-    }
-
-    if (!valid()) {
         qCCritical(LIBKWINGLUTILS) << "Can't disable invalid render target!";
         return false;
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    mTexture.setDirty();
 
     return true;
 }
@@ -1228,7 +1207,7 @@ static QString formatFramebufferStatus(GLenum status)
     }
 }
 
-void GLRenderTarget::initFBO()
+void GLRenderTarget::attachTexture(const GLTexture& texture)
 {
 #if DEBUG_GLRENDERTARGET
     GLenum err = glGetError();
@@ -1256,7 +1235,7 @@ void GLRenderTarget::initFBO()
 #endif
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           mTexture.target(), mTexture.texture(), 0);
+                           texture.target(), texture.texture(), 0);
 
 #if DEBUG_GLRENDERTARGET
     if ((err = glGetError()) != GL_NO_ERROR) {
@@ -1281,65 +1260,35 @@ void GLRenderTarget::initFBO()
         return;
     }
 
+    mViewport = QRect(0, 0, texture.width(), texture.height());
     mValid = true;
 }
 
 void GLRenderTarget::blitFromFramebuffer(const QRect &source, const QRect &destination, GLenum filter)
 {
     if (!GLRenderTarget::blitSupported()) {
+        qCCritical(LIBKWINGLUTILS) << "Blit is not supported!";
         return;
     }
 
     if (!mValid) {
-        initFBO();
+        qCCritical(LIBKWINGLUTILS) << "Can't blit to invalid render target!";
+        return;
     }
 
     GLRenderTarget::pushRenderTarget(this);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFramebuffer);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     const QRect s = source.isNull() ? s_virtualScreenGeometry : source;
-    const QRect d = destination.isNull() ? QRect(0, 0, mTexture.width(), mTexture.height()) : destination;
+    const QRect d = destination.isNull() ? mViewport : destination;
 
     glBlitFramebuffer((s.x() - s_virtualScreenGeometry.x()) * s_virtualScreenScale,
                       (s_virtualScreenGeometry.height() - s_virtualScreenGeometry.y() + s.y() - s.height()) * s_virtualScreenScale,
                       (s.x() - s_virtualScreenGeometry.x() + s.width()) * s_virtualScreenScale,
                       (s_virtualScreenGeometry.height() - s_virtualScreenGeometry.y() + s.y()) * s_virtualScreenScale,
-                      d.x(), mTexture.height() - d.y() - d.height(), d.x() + d.width(), mTexture.height() - d.y(),
+                      d.x(), mViewport.height() - d.y() - d.height(), d.x() + d.width(), mViewport.height() - d.y(),
                       GL_COLOR_BUFFER_BIT, filter);
     GLRenderTarget::popRenderTarget();
-}
-
-void GLRenderTarget::attachTexture(const GLTexture& target)
-{
-    if (!mValid) {
-        initFBO();
-    }
-
-    if (mTexture.texture() == target.texture()) {
-        return;
-    }
-
-    pushRenderTarget(this);
-
-    mTexture = target;
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           mTexture.target(), mTexture.texture(), 0);
-
-    popRenderTarget();
-}
-
-void GLRenderTarget::detachTexture()
-{
-    if (mTexture.isNull()) {
-        return;
-    }
-
-    pushRenderTarget(this);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           mTexture.target(), 0, 0);
-
-    popRenderTarget();
 }
 
 
