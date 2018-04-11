@@ -1347,17 +1347,28 @@ void GLRenderTarget::blitFromFramebuffer(const QRect &source, const QRect &desti
         return;
     }
 
+    const int srcFbo = s_renderTargets.isEmpty() ? 0 : s_renderTargets.top()->m_framebuffer;
+    const QRect src = source.isNull() ? s_virtualScreenGeometry : source;
+
+    // TODO: take viewport into account.
+    const QRect screenGeo(s_virtualScreenGeometry);
+    const qreal screenScale = s_virtualScreenScale;
+    const int srcX0 = (src.x() - screenGeo.x()) * screenScale;
+    const int srcY0 = (screenGeo.height() - screenGeo.y() - src.y() - src.height()) * screenScale;
+    const int srcX1 = (src.x() - screenGeo.x() + src.width()) * screenScale;
+    const int srcY1 = (screenGeo.height() - screenGeo.y() - src.y()) * screenScale;
+
+    const QRect dst = destination.isNull() ? m_viewport : destination;
+    const int dstX0 = dst.x();
+    const int dstY0 = m_viewport.height() - dst.y() - dst.height();
+    const int dstX1 = dst.x() + dst.width();
+    const int dstY1 = m_viewport.height() - dst.y();
+
     GLRenderTarget::pushRenderTarget(this);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebuffer);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    const QRect s = source.isNull() ? s_virtualScreenGeometry : source;
-    const QRect d = destination.isNull() ? m_viewport : destination;
-
-    glBlitFramebuffer((s.x() - s_virtualScreenGeometry.x()) * s_virtualScreenScale,
-                      (s_virtualScreenGeometry.height() - s_virtualScreenGeometry.y() + s.y() - s.height()) * s_virtualScreenScale,
-                      (s.x() - s_virtualScreenGeometry.x() + s.width()) * s_virtualScreenScale,
-                      (s_virtualScreenGeometry.height() - s_virtualScreenGeometry.y() + s.y()) * s_virtualScreenScale,
-                      d.x(), m_viewport.height() - d.y() - d.height(), d.x() + d.width(), m_viewport.height() - d.y(),
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, srcFbo);
+    glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1,
+                      dstX0, dstY0, dstX1, dstY1,
                       GL_COLOR_BUFFER_BIT, filter);
     GLRenderTarget::popRenderTarget();
 }
