@@ -69,6 +69,7 @@ VirtualDesktopGrid::VirtualDesktopGrid()
     : m_size(1, 2) // Default to tow rows
     , m_grid(QVector<QVector<VirtualDesktop*>>{QVector<VirtualDesktop*>{}, QVector<VirtualDesktop*>{}})
 {
+    
 }
 
 VirtualDesktopGrid::~VirtualDesktopGrid() = default;

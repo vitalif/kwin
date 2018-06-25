@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KWayland/Server/idleinhibit_interface.h>
 #include <KWayland/Server/output_interface.h>
 #include <KWayland/Server/plasmashell_interface.h>
+#include <KWayland/Server/plasmavirtualdesktop_interface.h>
 #include <KWayland/Server/plasmawindowmanagement_interface.h>
 #include <KWayland/Server/pointerconstraints_interface.h>
 #include <KWayland/Server/pointergestures_interface.h>
@@ -64,6 +65,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Qt
 #include <QThread>
 #include <QWindow>
+#include <QUuid>
 
 // system
 #include <sys/types.h>
@@ -328,6 +330,24 @@ bool WaylandServer::init(const QByteArray &socketName, InitalizationFlags flags)
             workspace()->setShowingDesktop(set);
         }
     );
+
+
+    m_virtualDesktopManagement = m_display->createPlasmaVirtualDesktopManagement(m_display);
+    m_virtualDesktopManagement->create();
+
+    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::countChanged, this,
+        [this](uint previousCount, uint newCount) {
+            if (previousCount < newCount) {
+                for (quint32 i = 0; i < newCount - previousCount; ++i) {
+                    m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
+                }
+            } else {
+                for (quint32 i = 0; i < previousCount - newCount; ++i) {
+                    m_virtualDesktopManagement->removeDesktop(m_virtualDesktopManagement->desktops().last()->id());
+                }
+            }
+        });
+
     auto shadowManager = m_display->createShadowManager(m_display);
     shadowManager->create();
 
