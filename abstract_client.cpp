@@ -915,7 +915,7 @@ void AbstractClient::setupWindowManagementInterface()
             if (VirtualDesktopManager::self()->currentDesktop()->id() == desktopId) {
                 emit windowShown(this);
             //hide
-            } else {
+            } else if (!m_windowManagementInterface->plasmaVirtualDesktops().isEmpty()) {
                 workspace()->clientHidden(this);
             }
         }
@@ -931,7 +931,7 @@ void AbstractClient::setupWindowManagementInterface()
         }
     );
     //set initial visibility
-    if (w->plasmaVirtualDesktops().contains(VirtualDesktopManager::self()->currentDesktop()->id())) {
+    if (w->plasmaVirtualDesktops().isEmpty() || w->plasmaVirtualDesktops().contains(VirtualDesktopManager::self()->currentDesktop()->id())) {
         emit windowShown(this);
     } else {
         workspace()->clientHidden(this);

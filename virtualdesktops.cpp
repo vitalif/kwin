@@ -326,6 +326,18 @@ VirtualDesktop *VirtualDesktopManager::desktopForX11Id(uint id) const
     return m_desktops.at(id - 1);
 }
 
+VirtualDesktop *VirtualDesktopManager::desktopForId(const QByteArray &id) const
+{
+    auto desk = std::find_if( m_desktops.constBegin(),
+                         m_desktops.constEnd(),
+                         [id]( const VirtualDesktop *desk ){ return desk->id() == id; } );
+    if (desk != m_desktops.constEnd()) {
+        return *desk;
+    } else {
+        return nullptr;
+    }
+}
+
 uint VirtualDesktopManager::current() const
 {
     return m_current ? m_current->x11DesktopNumber() : 0;

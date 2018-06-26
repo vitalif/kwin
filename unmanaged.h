@@ -39,6 +39,7 @@ public:
     static void deleteUnmanaged(Unmanaged* c);
     virtual int desktop() const;
     virtual QStringList activities() const;
+    virtual QStringList plasmaDesktops() const;
     virtual QPoint clientPos() const;
     virtual QSize clientSize() const;
     virtual QRect transparentRect() const;

@@ -1342,6 +1342,11 @@ QStringList Client::activities() const
     return activityList;
 }
 
+QStringList Client::plasmaDesktops() const
+{
+    return QStringList();
+}
+
 /**
  * if @p on is true, sets on all activities.
  * if it's false, sets it to only be on the current activity

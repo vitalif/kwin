@@ -286,6 +286,7 @@ public:
      */
     virtual int desktop() const = 0;
     virtual QStringList activities() const = 0;
+    virtual QStringList plasmaDesktops() const = 0;
     bool isOnDesktop(int d) const;
     bool isOnActivity(const QString &activity) const;
     bool isOnCurrentDesktop() const;
@@ -776,7 +777,8 @@ const EffectWindowImpl* Toplevel::effectWindow() const
 
 inline bool Toplevel::isOnAllDesktops() const
 {
-    return desktop() == NET::OnAllDesktops;
+    //Wayland client
+    return surfaceId() > 0 ? plasmaDesktops().isEmpty() : desktop() == NET::OnAllDesktops;
 }
 
 inline bool Toplevel::isOnAllActivities() const
@@ -786,7 +788,7 @@ inline bool Toplevel::isOnAllActivities() const
 
 inline bool Toplevel::isOnDesktop(int d) const
 {
-    return desktop() == d || /*desk == 0 ||*/ isOnAllDesktops();
+    return desktop() == d || plasmaDesktops().contains(VirtualDesktopManager::self()->desktopForX11Id(d)->id()) || isOnAllDesktops();
 }
 
 inline bool Toplevel::isOnActivity(const QString &activity) const

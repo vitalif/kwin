@@ -59,6 +59,7 @@ public:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
     QStringList activities() const override;
+    QStringList plasmaDesktops() const override;
     QPoint clientContentPos() const override;
     QSize clientSize() const override;
     QRect transparentRect() const override;

@@ -264,6 +264,11 @@ public:
     VirtualDesktop *desktopForX11Id(uint id) const;
 
     /**
+     * @returns The VirtualDesktop for the internal desktop string @p id, if no such VirtualDesktop @c null is returned
+     **/
+    VirtualDesktop *desktopForId(const QByteArray &id) const;
+
+    /**
      * Updates the net root info for new number of desktops
      **/
     void updateRootInfo();

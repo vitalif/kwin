@@ -141,6 +141,11 @@ QStringList Deleted::activities() const
     return activityList;
 }
 
+QStringList Deleted::plasmaDesktops() const
+{
+    return QStringList();
+}
+
 QPoint Deleted::clientPos() const
 {
     return contentsRect.topLeft();

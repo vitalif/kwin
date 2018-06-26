@@ -123,6 +123,11 @@ QStringList Unmanaged::activities() const
     return QStringList();
 }
 
+QStringList Unmanaged::plasmaDesktops() const
+{
+    return QStringList();
+}
+
 QPoint Unmanaged::clientPos() const
 {
     return QPoint(0, 0);   // unmanaged windows don't have decorations

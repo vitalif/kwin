@@ -414,6 +414,15 @@ QStringList ShellClient::activities() const
     return QStringList();
 }
 
+QStringList ShellClient::plasmaDesktops() const
+{
+    if (!windowManagementInterface()) {
+        return QStringList();
+    }
+
+    return windowManagementInterface()->plasmaVirtualDesktops();
+}
+
 QPoint ShellClient::clientContentPos() const
 {
     return -1 * clientPos();

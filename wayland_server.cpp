@@ -339,7 +339,8 @@ bool WaylandServer::init(const QByteArray &socketName, InitalizationFlags flags)
         [this](uint previousCount, uint newCount) {
             if (previousCount < newCount) {
                 for (quint32 i = 0; i < newCount - previousCount; ++i) {
-                    m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
+                    PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
+                    desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(previousCount + i)->name());
                 }
             } else {
                 for (quint32 i = 0; i < previousCount - newCount; ++i) {
