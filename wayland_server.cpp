@@ -348,6 +348,12 @@ bool WaylandServer::init(const QByteArray &socketName, InitalizationFlags flags)
                 }
             }
         });
+    //FIXME: this crashes as VirtualDesktopManager::self() is nullptr, which doesn't make sense
+    for (quint32 i = 0; i < VirtualDesktopManager::self()->count(); ++i) {
+        PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
+        desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(i)->name());
+qWarning()<<"Adding a desktop"<<VirtualDesktopManager::self()->desktopForX11Id(i)->name();
+    }
 
     auto shadowManager = m_display->createShadowManager(m_display);
     shadowManager->create();
