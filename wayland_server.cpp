@@ -392,7 +392,7 @@ void WaylandServer::shellClientShown(Toplevel *t)
 
 void WaylandServer::initWorkspace()
 {
-connect(VirtualDesktopManager::self(), &VirtualDesktopManager::countChanged, this,
+    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::countChanged, this,
         [this](uint previousCount, uint newCount) {
             if (previousCount < newCount) {
                 for (quint32 i = 1; i <= newCount - previousCount; ++i) {
