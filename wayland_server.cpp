@@ -335,26 +335,6 @@ bool WaylandServer::init(const QByteArray &socketName, InitalizationFlags flags)
     m_virtualDesktopManagement = m_display->createPlasmaVirtualDesktopManagement(m_display);
     m_virtualDesktopManagement->create();
 
-    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::countChanged, this,
-        [this](uint previousCount, uint newCount) {
-            if (previousCount < newCount) {
-                for (quint32 i = 0; i < newCount - previousCount; ++i) {
-                    PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
-                    desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(previousCount + i)->name());
-                }
-            } else {
-                for (quint32 i = 0; i < previousCount - newCount; ++i) {
-                    m_virtualDesktopManagement->removeDesktop(m_virtualDesktopManagement->desktops().last()->id());
-                }
-            }
-        });
-    //FIXME: this crashes as VirtualDesktopManager::self() is nullptr, which doesn't make sense
-    for (quint32 i = 0; i < VirtualDesktopManager::self()->count(); ++i) {
-        PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
-        desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(i)->name());
-qWarning()<<"Adding a desktop"<<VirtualDesktopManager::self()->desktopForX11Id(i)->name();
-    }
-
     auto shadowManager = m_display->createShadowManager(m_display);
     shadowManager->create();
 
@@ -412,6 +392,25 @@ void WaylandServer::shellClientShown(Toplevel *t)
 
 void WaylandServer::initWorkspace()
 {
+connect(VirtualDesktopManager::self(), &VirtualDesktopManager::countChanged, this,
+        [this](uint previousCount, uint newCount) {
+            if (previousCount < newCount) {
+                for (quint32 i = 1; i <= newCount - previousCount; ++i) {
+                    PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
+                    desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(previousCount + i)->name());
+                }
+            } else {
+                for (quint32 i = 0; i < previousCount - newCount; ++i) {
+                    m_virtualDesktopManagement->removeDesktop(m_virtualDesktopManagement->desktops().last()->id());
+                }
+            }
+        });
+
+    for (quint32 i = 1; i <= VirtualDesktopManager::self()->count(); ++i) {
+        PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
+        desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(i)->name());
+    }
+
     if (m_windowManagement) {
         connect(workspace(), &Workspace::showingDesktopChanged, this,
             [this] (bool set) {
