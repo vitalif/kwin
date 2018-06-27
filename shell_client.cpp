@@ -423,6 +423,25 @@ QStringList ShellClient::plasmaDesktops() const
     return windowManagementInterface()->plasmaVirtualDesktops();
 }
 
+void ShellClient::doSetDesktop(int desktop, int was_desk)
+{
+    Q_UNUSED(was_desk)
+    if (!windowManagementInterface()) {
+        return;
+    }
+
+    windowManagementInterface()->addPlasmaVirtualDesktop(VirtualDesktopManager::self()->desktopForX11Id(desktop)->id());
+}
+
+void ShellClient::unSetDesktop(int desktop)
+{
+    if (!windowManagementInterface()) {
+        return;
+    }
+
+    windowManagementInterface()->removePlasmaVirtualDesktop(VirtualDesktopManager::self()->desktopForX11Id(desktop)->id());
+}
+
 QPoint ShellClient::clientContentPos() const
 {
     return -1 * clientPos();

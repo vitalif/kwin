@@ -604,17 +604,33 @@ void UserActionsMenu::initTabbingPopups()
 
 void UserActionsMenu::initDesktopPopup()
 {
-    if (m_desktopMenu)
-        return;
+    if (qobject_cast<ShellClient*>(m_client.data())) { 
+        if (m_plasmaDesktopMenu) {
+            return;
+        }
 
-    m_desktopMenu = new QMenu(m_menu);
-    connect(m_desktopMenu, &QMenu::triggered,   this, &UserActionsMenu::slotSendToDesktop);
-    connect(m_desktopMenu, &QMenu::aboutToShow, this, &UserActionsMenu::desktopPopupAboutToShow);
+        m_plasmaDesktopMenu = new QMenu(m_menu);
+        connect(m_plasmaDesktopMenu, &QMenu::triggered, this,   &UserActionsMenu::slotToggleOnPlasmaDesktop);
+        connect(m_plasmaDesktopMenu, &QMenu::aboutToShow, this, &UserActionsMenu::plasmaDesktopPopupAboutToShow);
 
-    QAction *action = m_desktopMenu->menuAction();
-    // set it as the first item
-    m_menu->insertAction(m_minimizeOperation, action);
-    action->setText(i18n("Move To &Desktop"));
+        QAction *action = m_plasmaDesktopMenu->menuAction();
+        // set it as the first item
+        m_menu->insertAction(m_minimizeOperation, action);
+        action->setText(i18n("&Desktops"));
+
+    } else {
+        if (m_desktopMenu)
+            return;
+
+        m_desktopMenu = new QMenu(m_menu);
+        connect(m_desktopMenu, &QMenu::triggered,   this, &UserActionsMenu::slotSendToDesktop);
+        connect(m_desktopMenu, &QMenu::aboutToShow, this, &UserActionsMenu::desktopPopupAboutToShow);
+
+        QAction *action = m_desktopMenu->menuAction();
+        // set it as the first item
+        m_menu->insertAction(m_minimizeOperation, action);
+        action->setText(i18n("Move To &Desktop"));
+    }
 }
 
 void UserActionsMenu::initScreenPopup()
@@ -667,6 +683,7 @@ void UserActionsMenu::desktopPopupAboutToShow()
     m_desktopMenu->addSeparator();
 
     const uint BASE = 10;
+
     for (uint i = 1; i <= vds->count(); ++i) {
         QString basic_name(QStringLiteral("%1  %2"));
         if (i < BASE) {
@@ -688,6 +705,65 @@ void UserActionsMenu::desktopPopupAboutToShow()
 
     if (vds->count() >= vds->maximum())
         action->setEnabled(false);
+}
+
+void UserActionsMenu::plasmaDesktopPopupAboutToShow()
+{
+    if (!m_plasmaDesktopMenu)
+        return;
+    const VirtualDesktopManager *vds = VirtualDesktopManager::self();
+
+    m_plasmaDesktopMenu->clear();
+    m_plasmaDesktopMenu->setPalette(m_client.data()->palette());
+    QAction *action = m_plasmaDesktopMenu->addAction(i18n("&All Desktops"));
+    action->setData(QString());
+    action->setCheckable(true);
+    static QPointer<QActionGroup> allDesktopsGroup;
+    if (!allDesktopsGroup) {
+        allDesktopsGroup = new QActionGroup(m_plasmaDesktopMenu);
+    }
+    allDesktopsGroup->addAction(action);
+
+    if (!m_client.isNull() && m_client.data()->isOnAllDesktops()) {
+        action->setChecked(true);
+    }
+    m_plasmaDesktopMenu->addSeparator();
+
+
+    const uint BASE = 10;
+
+    for (uint i = 1; i <= vds->count(); ++i) {
+        QString basic_name(QStringLiteral("%1  %2"));
+        if (i < BASE) {
+            basic_name.prepend(QLatin1Char('&'));
+        }
+        QWidgetAction *action = new QWidgetAction(m_plasmaDesktopMenu);
+        QCheckBox *box = new QCheckBox(basic_name.arg(i).arg(vds->name(i).replace(QLatin1Char('&'), QStringLiteral("&&"))), m_plasmaDesktopMenu);
+        action->setDefaultWidget(box);
+
+        box->setBackgroundRole(m_plasmaDesktopMenu->backgroundRole());
+        box->setForegroundRole(m_plasmaDesktopMenu->foregroundRole());
+        box->setPalette(m_plasmaDesktopMenu->palette());
+        connect(box, &QCheckBox::clicked, action, &QAction::triggered);
+        m_plasmaDesktopMenu->addAction(action);
+        action->setData(i);
+
+        if (!m_client.isNull() &&
+                !m_client.data()->isOnAllDesktops() && m_client.data()->isOnDesktop(i)) {
+            action->setChecked(true);
+        }
+    }
+
+    m_plasmaDesktopMenu->addSeparator();
+    action = m_plasmaDesktopMenu->addAction(i18nc("Create a new desktop and move there the window", "&New Desktop"));
+    action->setData(vds->count() + 1);
+
+    if (vds->count() >= vds->maximum())
+        action->setEnabled(false);
+    
+        
+
+        
 }
 
 void UserActionsMenu::screenPopupAboutToShow()
@@ -814,6 +890,36 @@ void UserActionsMenu::slotSendToDesktop(QAction *action)
     }
 
     ws->sendClientToDesktop(m_client.data(), desk, false);
+}
+
+void UserActionsMenu::slotToggleOnPlasmaDesktop(QAction *action)
+{
+    bool ok = false;
+    uint desk = action->data().toUInt(&ok);
+    if (!ok) {
+        return;
+    }
+    if (m_client.isNull()) {
+        return;
+    }
+
+    Workspace *ws = Workspace::self();
+    VirtualDesktopManager *vds = VirtualDesktopManager::self();
+    if (desk == 0) {
+        // the 'on_all_desktops' menu entry
+        m_client.data()->setOnAllDesktops(!m_client.data()->isOnAllDesktops());
+        return;
+    } else if (desk > vds->count()) {
+        vds->setCount(desk);
+    }
+
+    const QByteArray id = VirtualDesktopManager::self()->desktopForX11Id(desk)->id();
+    if (m_client.data()->plasmaDesktops().contains(id)) {
+        m_client.data()->unSetDesktop(desk);
+    } else {
+        m_client.data()->setDesktop(desk);
+        //ws->sendClientToDesktop(m_client.data(), desk, false);
+    }
 }
 
 void UserActionsMenu::slotSendToScreen(QAction *action)

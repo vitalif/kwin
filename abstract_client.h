@@ -414,6 +414,7 @@ public:
     virtual bool performMouseCommand(Options::MouseCommand, const QPoint &globalPos);
     void setOnAllDesktops(bool set);
     void setDesktop(int);
+    virtual void unSetDesktop(int desktop);
     int desktop() const override {
         return m_desktop;
     }

@@ -778,7 +778,7 @@ const EffectWindowImpl* Toplevel::effectWindow() const
 inline bool Toplevel::isOnAllDesktops() const
 {
     //Wayland client
-    return surfaceId() > 0 ? plasmaDesktops().isEmpty() : desktop() == NET::OnAllDesktops;
+    return surfaceId() > 0 ? plasmaDesktops().isEmpty() || (quint32)plasmaDesktops().count() == VirtualDesktopManager::self()->count() : desktop() == NET::OnAllDesktops;
 }
 
 inline bool Toplevel::isOnAllActivities() const
@@ -787,7 +787,7 @@ inline bool Toplevel::isOnAllActivities() const
 }
 
 inline bool Toplevel::isOnDesktop(int d) const
-{
+{qWarning()<<"AAAAA"<<plasmaDesktops()<<VirtualDesktopManager::self()->desktopForX11Id(d)->id();
     return desktop() == d || plasmaDesktops().contains(VirtualDesktopManager::self()->desktopForX11Id(d)->id()) || isOnAllDesktops();
 }
 

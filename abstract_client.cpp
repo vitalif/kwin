@@ -494,6 +494,7 @@ void AbstractClient::setDesktop(int desktop)
     if (info) {
         info->setDesktop(desktop);
     }
+
     if ((was_desk == NET::OnAllDesktops) != (desktop == NET::OnAllDesktops)) {
         // onAllDesktops changed
         workspace()->updateOnAllDesktopsOfTransients(this);
@@ -527,6 +528,11 @@ void AbstractClient::doSetDesktop(int desktop, int was_desk)
 {
     Q_UNUSED(desktop)
     Q_UNUSED(was_desk)
+}
+
+void AbstractClient::unSetDesktop(int desktop)
+{
+    Q_UNUSED(desktop)
 }
 
 void AbstractClient::setOnAllDesktops(bool b)
@@ -915,11 +921,12 @@ void AbstractClient::setupWindowManagementInterface()
             if (VirtualDesktopManager::self()->currentDesktop()->id() == desktopId) {
                 emit windowShown(this);
             //hide
-            } else if (!m_windowManagementInterface->plasmaVirtualDesktops().isEmpty()) {
+            } /*else if (!m_windowManagementInterface->plasmaVirtualDesktops().isEmpty()) {
                 workspace()->clientHidden(this);
-            }
+            }*/
         }
     );
+    //TODO: connect leaveRequested
     //show/hide when the current desktop changes
     connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this,
         [this, w] () {
