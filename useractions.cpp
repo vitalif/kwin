@@ -716,7 +716,7 @@ void UserActionsMenu::plasmaDesktopPopupAboutToShow()
     m_plasmaDesktopMenu->clear();
     m_plasmaDesktopMenu->setPalette(m_client.data()->palette());
     QAction *action = m_plasmaDesktopMenu->addAction(i18n("&All Desktops"));
-    action->setData(QString());
+    action->setData(0);
     action->setCheckable(true);
     static QPointer<QActionGroup> allDesktopsGroup;
     if (!allDesktopsGroup) {
@@ -750,7 +750,7 @@ void UserActionsMenu::plasmaDesktopPopupAboutToShow()
 
         if (!m_client.isNull() &&
                 !m_client.data()->isOnAllDesktops() && m_client.data()->isOnDesktop(i)) {
-            action->setChecked(true);
+            box->setChecked(true);
         }
     }
 
@@ -760,10 +760,6 @@ void UserActionsMenu::plasmaDesktopPopupAboutToShow()
 
     if (vds->count() >= vds->maximum())
         action->setEnabled(false);
-    
-        
-
-        
 }
 
 void UserActionsMenu::screenPopupAboutToShow()
@@ -917,8 +913,7 @@ void UserActionsMenu::slotToggleOnPlasmaDesktop(QAction *action)
     if (m_client.data()->plasmaDesktops().contains(id)) {
         m_client.data()->unSetDesktop(desk);
     } else {
-        m_client.data()->setDesktop(desk);
-        //ws->sendClientToDesktop(m_client.data(), desk, false);
+        ws->sendClientToDesktop(m_client.data(), desk, false);
     }
 }
 

@@ -913,20 +913,28 @@ void AbstractClient::setupWindowManagementInterface()
         }
     );
 
+    w->addPlasmaVirtualDesktop(VirtualDesktopManager::self()->currentDesktop()->id());
     //Plasma Virtual desktop management
     //show/hide when the window enters/exits from desktop
     connect(w, &PlasmaWindowInterface::enterPlasmaVirtualDesktopRequested, this,
         [this] (const QString &desktopId) {
+            m_windowManagementInterface->addPlasmaVirtualDesktop(desktopId);
             //On current desktop, show
             if (VirtualDesktopManager::self()->currentDesktop()->id() == desktopId) {
                 emit windowShown(this);
-            //hide
-            } /*else if (!m_windowManagementInterface->plasmaVirtualDesktops().isEmpty()) {
-                workspace()->clientHidden(this);
-            }*/
+            }
         }
     );
-    //TODO: connect leaveRequested
+    connect(w, &PlasmaWindowInterface::leavePlasmaVirtualDesktopRequested, this,
+        [this] (const QString &desktopId) {
+            m_windowManagementInterface->removePlasmaVirtualDesktop(desktopId);
+            //Not on current desktop, hide
+            if (VirtualDesktopManager::self()->currentDesktop()->id() == desktopId) {
+                workspace()->clientHidden(this);
+            }
+        }
+    );
+
     //show/hide when the current desktop changes
     connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this,
         [this, w] () {

@@ -787,7 +787,7 @@ inline bool Toplevel::isOnAllActivities() const
 }
 
 inline bool Toplevel::isOnDesktop(int d) const
-{qWarning()<<"AAAAA"<<plasmaDesktops()<<VirtualDesktopManager::self()->desktopForX11Id(d)->id();
+{
     return desktop() == d || plasmaDesktops().contains(VirtualDesktopManager::self()->desktopForX11Id(d)->id()) || isOnAllDesktops();
 }
 

@@ -334,6 +334,7 @@ bool WaylandServer::init(const QByteArray &socketName, InitalizationFlags flags)
 
     m_virtualDesktopManagement = m_display->createPlasmaVirtualDesktopManagement(m_display);
     m_virtualDesktopManagement->create();
+    m_windowManagement->setPlasmaVirtualDesktopManagementInterface(m_virtualDesktopManagement);
 
     auto shadowManager = m_display->createShadowManager(m_display);
     shadowManager->create();
@@ -408,6 +409,8 @@ void WaylandServer::initWorkspace()
 
     for (quint32 i = 1; i <= VirtualDesktopManager::self()->count(); ++i) {
         PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
+
+        VirtualDesktopManager::self()->desktopForX11Id(i)->setId(desktop->id().toUtf8());
         desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(i)->name());
     }
 

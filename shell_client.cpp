@@ -425,12 +425,15 @@ QStringList ShellClient::plasmaDesktops() const
 
 void ShellClient::doSetDesktop(int desktop, int was_desk)
 {
-    Q_UNUSED(was_desk)
-    if (!windowManagementInterface()) {
+    if (!windowManagementInterface() || desktop == was_desk) {
         return;
     }
 
-    windowManagementInterface()->addPlasmaVirtualDesktop(VirtualDesktopManager::self()->desktopForX11Id(desktop)->id());
+    if (desktop == NET::OnAllDesktops) {
+        windowManagementInterface()->setOnAllDesktops(true);
+    } else {
+        windowManagementInterface()->addPlasmaVirtualDesktop(VirtualDesktopManager::self()->desktopForX11Id(desktop)->id());
+    }
 }
 
 void ShellClient::unSetDesktop(int desktop)
