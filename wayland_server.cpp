@@ -401,7 +401,7 @@ void WaylandServer::initWorkspace()
                     desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(previousCount + i)->name());
                     connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
                         [this, desktop] () {
-                                m_virtualDesktopManagement->setActiveDesktop(desktop->id());
+                            VirtualDesktopManager::self()->setCurrent(VirtualDesktopManager::self()->desktopForId(desktop->id().toUtf8()));
                         }
                     );
                 }
@@ -420,10 +420,15 @@ void WaylandServer::initWorkspace()
 
         connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
             [this, desktop] () {
-                    m_virtualDesktopManagement->setActiveDesktop(desktop->id());
+                VirtualDesktopManager::self()->setCurrent(VirtualDesktopManager::self()->desktopForId(desktop->id().toUtf8()));
             }
         );
     }
+    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this,
+        [this]() {
+            m_virtualDesktopManagement->setActiveDesktop(VirtualDesktopManager::self()->currentDesktop()->id());
+        }
+    );
 
     if (m_windowManagement) {
         connect(workspace(), &Workspace::showingDesktopChanged, this,
