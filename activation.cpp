@@ -413,6 +413,7 @@ void Workspace::takeActivity(AbstractClient* c, ActivityFlags flags)
  */
 void Workspace::clientHidden(AbstractClient* c)
 {
+qWarning()<<c->isShown(true) << c->isOnCurrentDesktop() << c->isOnCurrentActivity();
     assert(!c->isShown(true) || !c->isOnCurrentDesktop() || !c->isOnCurrentActivity());
     activateNextClient(c);
 }

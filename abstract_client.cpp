@@ -935,16 +935,6 @@ void AbstractClient::setupWindowManagementInterface()
         }
     );
 
-    //show/hide when the current desktop changes
-    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this,
-        [this, w] () {
-            if (w->plasmaVirtualDesktops().contains(VirtualDesktopManager::self()->currentDesktop()->id())) {
-                emit windowShown(this);
-            } else {
-                workspace()->clientHidden(this);
-            }
-        }
-    );
     //set initial visibility
     if (w->plasmaVirtualDesktops().isEmpty() || w->plasmaVirtualDesktops().contains(VirtualDesktopManager::self()->currentDesktop()->id())) {
         emit windowShown(this);
