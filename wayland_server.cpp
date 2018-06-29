@@ -399,6 +399,11 @@ void WaylandServer::initWorkspace()
                 for (quint32 i = 1; i <= newCount - previousCount; ++i) {
                     PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
                     desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(previousCount + i)->name());
+                    connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
+                        [this, desktop] () {
+                                m_virtualDesktopManagement->setActiveDesktop(desktop->id());
+                        }
+                    );
                 }
             } else {
                 for (quint32 i = 0; i < previousCount - newCount; ++i) {
@@ -412,6 +417,12 @@ void WaylandServer::initWorkspace()
 
         VirtualDesktopManager::self()->desktopForX11Id(i)->setId(desktop->id().toUtf8());
         desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(i)->name());
+
+        connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
+            [this, desktop] () {
+                    m_virtualDesktopManagement->setActiveDesktop(desktop->id());
+            }
+        );
     }
 
     if (m_windowManagement) {
