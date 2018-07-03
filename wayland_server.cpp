@@ -405,12 +405,16 @@ void WaylandServer::initWorkspace()
                         }
                     );
                 }
-            } else {
-                for (quint32 i = 0; i < previousCount - newCount; ++i) {
-                    m_virtualDesktopManagement->removeDesktop(m_virtualDesktopManagement->desktops().last()->id());
-                }
             }
         });
+
+    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::desktopsRemoved, this,
+        [this](const QVector <KWin::VirtualDesktop *> &desktops) {
+            for (auto desk : desktops) {
+                m_virtualDesktopManagement->removeDesktop(desk->id());
+            }
+        }
+    );
 
     for (quint32 i = 1; i <= VirtualDesktopManager::self()->count(); ++i) {
         VirtualDesktop *internalDesktop = VirtualDesktopManager::self()->desktopForX11Id(i);

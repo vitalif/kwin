@@ -339,6 +339,25 @@ VirtualDesktop *VirtualDesktopManager::desktopForId(const QByteArray &id) const
     }
 }
 
+void VirtualDesktopManager::removeVirtualDesktop(const QByteArray &id)
+{
+    auto desktop = desktopForId(id);
+    if (!desktop) {
+        return;
+    }
+
+    const uint i = desktop->x11DesktopNumber() - 1;
+    m_desktops.remove(i);
+
+    for (uint j = i; j < m_desktops.count(); ++j) {
+        m_desktops[j]->setX11DesktopNumber(j+1);
+    }
+
+    emit desktopsRemoved(QVector<VirtualDesktop *>({desktop}));
+
+    desktop->deleteLater();
+}
+
 uint VirtualDesktopManager::current() const
 {
     return m_current ? m_current->x11DesktopNumber() : 0;
@@ -380,13 +399,20 @@ void VirtualDesktopManager::setCount(uint count)
     }
     const uint oldCount = m_desktops.count();
     const uint oldCurrent = current();
-    while (uint(m_desktops.count()) > count) {
-        delete m_desktops.takeLast();
-    }
-    while (uint(m_desktops.count()) < count) {
-        auto vd = new VirtualDesktop(this);
-        vd->setX11DesktopNumber(m_desktops.count() + 1);
-        m_desktops << vd;
+    //this explicit check makes it more readable
+    if (m_desktops.count() > count) {
+        const auto desktopsToRemove = m_desktops.mid(count-1);
+        m_desktops.resize(count);
+        emit desktopsRemoved(desktopsToRemove);
+        for (auto desktop : desktopsToRemove) {
+            desktop->deleteLater();
+        }
+    } else {
+        while (uint(m_desktops.count()) < count) {
+            auto vd = new VirtualDesktop(this);
+            vd->setX11DesktopNumber(m_desktops.count() + 1);
+            m_desktops << vd;
+        }
     }
     if (oldCount > count) {
         handleDesktopsRemoved(oldCount, oldCurrent);
@@ -404,7 +430,7 @@ void VirtualDesktopManager::handleDesktopsRemoved(uint previousCount, uint previ
         m_current = m_desktops.last();
         emit currentChanged(previousCurrent, m_current->x11DesktopNumber());
     }
-    emit desktopsRemoved(previousCount);
+   // emit desktopsRemoved(previousCount);
 }
 
 void VirtualDesktopManager::updateRootInfo()

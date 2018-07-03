@@ -219,7 +219,31 @@ void Workspace::init()
 
     // create VirtualDesktopManager and perform dependency injection
     VirtualDesktopManager *vds = VirtualDesktopManager::self();
-    connect(vds, SIGNAL(desktopsRemoved(uint)), SLOT(moveClientsFromRemovedDesktops()));
+    connect(vds, &VirtualDesktopManager::desktopsRemoved, this,
+        [this](const QVector <KWin::VirtualDesktop *> &desktops) {
+            //Wayland
+            if (waylandServer()) {
+                for (auto it = m_allClients.constBegin(); it != m_allClients.constEnd(); ++it) {
+                    if (!(*it)->isOnAllDesktops() && (*it)->plasmaDesktops().count() == 1) {
+                        const QString deskId = (*it)->plasmaDesktops().first();
+                        for (auto desk : desktops) {
+                            if (desk->id() == deskId) {
+                                sendClientToDesktop(*it, qMin(desk->x11DesktopNumber(), VirtualDesktopManager::self()->count()), true);
+                            }
+                        }
+                    }
+                }
+            //X11
+            } else {
+                for (auto it = m_allClients.constBegin(); it != m_allClients.constEnd(); ++it) {
+                    if (!(*it)->isOnAllDesktops() && ((*it)->desktop() > static_cast<int>(VirtualDesktopManager::self()->count()))) {
+                        sendClientToDesktop(*it, VirtualDesktopManager::self()->count(), true);
+                    }
+                }
+            }
+        }
+    );
+
     connect(vds, SIGNAL(countChanged(uint,uint)), SLOT(slotDesktopCountChanged(uint,uint)));
     connect(vds, SIGNAL(currentChanged(uint,uint)), SLOT(slotCurrentDesktopChanged(uint,uint)));
     vds->setNavigationWrappingAround(options->isRollOverDesktops());
@@ -1072,14 +1096,6 @@ void Workspace::updateCurrentActivity(const QString &new_activity)
 #else
     Q_UNUSED(new_activity)
 #endif
-}
-
-void Workspace::moveClientsFromRemovedDesktops()
-{
-    for (auto it = m_allClients.constBegin(); it != m_allClients.constEnd(); ++it) {
-        if (!(*it)->isOnAllDesktops() && (*it)->desktop() > static_cast<int>(VirtualDesktopManager::self()->count()))
-            sendClientToDesktop(*it, VirtualDesktopManager::self()->count(), true);
-    }
 }
 
 void Workspace::slotDesktopCountChanged(uint previousCount, uint newCount)

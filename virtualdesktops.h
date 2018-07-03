@@ -269,6 +269,11 @@ public:
     VirtualDesktop *desktopForId(const QByteArray &id) const;
 
     /**
+     * 
+     */
+    void removeVirtualDesktop(const QByteArray &id);
+
+    /**
      * Updates the net root info for new number of desktops
      **/
     void updateRootInfo();
@@ -350,7 +355,8 @@ Q_SIGNALS:
      * @see setCount
      * @see count
      **/
-    void desktopsRemoved(uint previousCount);
+    //void desktopsRemoved(uint previousCount);
+    void desktopsRemoved(const QVector <KWin::VirtualDesktop *> &desktops);
     /**
      * Signal emitted whenever the current desktop changes.
      * @param previousDesktop The virtual desktop changed from

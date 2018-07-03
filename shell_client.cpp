@@ -425,7 +425,9 @@ QStringList ShellClient::plasmaDesktops() const
 
 void ShellClient::doSetDesktop(int desktop, int was_desk)
 {
-    if (!windowManagementInterface() || desktop == was_desk) {
+    //we need to redo this, because it can be set again to the same desktop number,
+    //because the old desktop may have been deleted
+    if (!windowManagementInterface()/* || desktop == was_desk*/) {
         return;
     }
 

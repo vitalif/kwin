@@ -912,7 +912,7 @@ void AbstractClient::setupWindowManagementInterface()
             setShade(set);
         }
     );
-
+//TODO: explicit show hide maybe not needed
     w->addPlasmaVirtualDesktop(VirtualDesktopManager::self()->currentDesktop()->id());
     //Plasma Virtual desktop management
     //show/hide when the window enters/exits from desktop
