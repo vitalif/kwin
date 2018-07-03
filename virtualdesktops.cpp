@@ -27,9 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <NETWM>
 // Qt
 #include <QAction>
+#include <QUuid>
 
 #include <algorithm>
-
+#include <QDebug>
 namespace KWin {
 
 extern int screen_number;
@@ -459,14 +460,26 @@ void VirtualDesktopManager::load()
     KConfigGroup group(m_config, groupname);
     const int n = group.readEntry("Number", 1);
     setCount(n);
-    if (m_rootInfo) {
-        for (int i = 1; i <= n; i++) {
-            QString s = group.readEntry(QStringLiteral("Name_%1").arg(i), i18n("Desktop %1", i));
-            m_rootInfo->setDesktopName(i, s.toUtf8().data());
-            // TODO: update desktop focus chain, why?
-//         m_desktopFocusChain.value()[i-1] = i;
-        }
+    //Use kactivitymanagerdrc directly?
 
+    for (int i = 1; i <= n; i++) {
+        QString s = group.readEntry(QStringLiteral("Name_%1").arg(i), i18n("Desktop %1", i));
+        if (m_rootInfo) {
+            m_rootInfo->setDesktopName(i, s.toUtf8().data());
+        }
+        m_desktops[i-1]->setName(s.toUtf8().data());
+
+        s = group.readEntry(QStringLiteral("Id_%1").arg(i), QString());
+        if (s.isEmpty()) {
+            s = QUuid::createUuid().toString();
+        }
+        m_desktops[i-1]->setId(s.toUtf8().data());
+
+        // TODO: update desktop focus chain, why?
+//         m_desktopFocusChain.value()[i-1] = i;
+    }
+
+    if (m_rootInfo) {
         int rows = group.readEntry<int>("Rows", 2);
         rows = qBound(1, rows, n);
         // avoid weird cases like having 3 rows for 4 desktops, where the last row is unused
@@ -477,6 +490,7 @@ void VirtualDesktopManager::load()
         m_rootInfo->setDesktopLayout(NET::OrientationHorizontal, columns, rows, NET::DesktopLayoutCornerTopLeft);
         m_rootInfo->activate();
     }
+
     s_loadingDesktopSettings = false;
 }
 
@@ -515,6 +529,8 @@ void VirtualDesktopManager::save()
                 group.deleteEntry(QStringLiteral("Name_%1").arg(i));
             }
         }
+
+        group.writeEntry(QStringLiteral("Id_%1").arg(i), m_desktops[i-1]->id());
     }
 
     // Save to disk

@@ -65,7 +65,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Qt
 #include <QThread>
 #include <QWindow>
-#include <QUuid>
 
 // system
 #include <sys/types.h>
@@ -397,8 +396,9 @@ void WaylandServer::initWorkspace()
         [this](uint previousCount, uint newCount) {
             if (previousCount < newCount) {
                 for (quint32 i = 1; i <= newCount - previousCount; ++i) {
-                    PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
-                    desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(previousCount + i)->name());
+                    VirtualDesktop *internalDesktop = VirtualDesktopManager::self()->desktopForX11Id(previousCount + i);
+                    PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(internalDesktop->id());
+                    desktop->setName(internalDesktop->name());
                     connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
                         [this, desktop] () {
                             VirtualDesktopManager::self()->setCurrent(VirtualDesktopManager::self()->desktopForId(desktop->id().toUtf8()));
@@ -413,10 +413,10 @@ void WaylandServer::initWorkspace()
         });
 
     for (quint32 i = 1; i <= VirtualDesktopManager::self()->count(); ++i) {
-        PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(QUuid::createUuid().toString());
+        VirtualDesktop *internalDesktop = VirtualDesktopManager::self()->desktopForX11Id(i);
+        PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(internalDesktop->id());
 
-        VirtualDesktopManager::self()->desktopForX11Id(i)->setId(desktop->id().toUtf8());
-        desktop->setName(VirtualDesktopManager::self()->desktopForX11Id(i)->name());
+        desktop->setName(desktop->name());
 
         connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
             [this, desktop] () {
@@ -424,6 +424,9 @@ void WaylandServer::initWorkspace()
             }
         );
     }
+    //Now we are sure all ids are there
+    VirtualDesktopManager::self()->save();
+
     connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this,
         [this]() {
             m_virtualDesktopManagement->setActiveDesktop(VirtualDesktopManager::self()->currentDesktop()->id());
