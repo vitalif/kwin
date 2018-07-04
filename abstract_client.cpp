@@ -912,25 +912,30 @@ void AbstractClient::setupWindowManagementInterface()
             setShade(set);
         }
     );
-//TODO: explicit show hide maybe not needed
+
     w->addPlasmaVirtualDesktop(VirtualDesktopManager::self()->currentDesktop()->id());
     //Plasma Virtual desktop management
     //show/hide when the window enters/exits from desktop
     connect(w, &PlasmaWindowInterface::enterPlasmaVirtualDesktopRequested, this,
         [this] (const QString &desktopId) {
             m_windowManagementInterface->addPlasmaVirtualDesktop(desktopId);
-            //On current desktop, show
-            if (VirtualDesktopManager::self()->currentDesktop()->id() == desktopId) {
-                emit windowShown(this);
+            VirtualDesktop *vd = VirtualDesktopManager::self()->desktopForId(desktopId.toUtf8());
+            if (vd) {
+                workspace()->sendClientToDesktop(this, vd->x11DesktopNumber(), false);
             }
+        }
+    );
+    connect(w, &PlasmaWindowInterface::enterNewPlasmaVirtualDesktopRequested, this,
+        [this] () {
+            VirtualDesktopManager::self()->setCount(VirtualDesktopManager::self()->count() + 1);
+            workspace()->sendClientToDesktop(this, VirtualDesktopManager::self()->count(), false);
         }
     );
     connect(w, &PlasmaWindowInterface::leavePlasmaVirtualDesktopRequested, this,
         [this] (const QString &desktopId) {
-            m_windowManagementInterface->removePlasmaVirtualDesktop(desktopId);
-            //Not on current desktop, hide
-            if (VirtualDesktopManager::self()->currentDesktop()->id() == desktopId) {
-                workspace()->clientHidden(this);
+            VirtualDesktop *vd = VirtualDesktopManager::self()->desktopForId(desktopId.toUtf8());
+            if (vd) {
+                unSetDesktop(vd->x11DesktopNumber());
             }
         }
     );
