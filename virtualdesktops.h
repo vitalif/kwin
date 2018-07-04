@@ -269,7 +269,20 @@ public:
     VirtualDesktop *desktopForId(const QByteArray &id) const;
 
     /**
-     * 
+     * Create a new virtual desktop at the requested position.
+     * The difference with setCount is that setCount always adds new desktops at the end of the chain. The Id is automatically generated.
+     * @param x11DesktopNumber number for the desktop. The desktop created will have an
+     *           x11DesktopNumber guaranteed to be between 1 and numberOfDesktops().
+     * @param name The name for the new desktop, if empty the default name will be used.
+     * @returns the new VirtualDesktop, nullptr if we reached the maximum number of desktops
+     */
+     VirtualDesktop *createVirtualDesktop(uint x11DesktopNumber, const QString &name = QString());
+
+    /**
+     * Remove the virtual desktop identified by id, if it exists
+     * difference with setCount is that is possible to remove an arbitrary desktop,
+     * not only the last one.
+     * @param id the string id of the desktop to remove
      */
     void removeVirtualDesktop(const QByteArray &id);
 
@@ -344,19 +357,21 @@ Q_SIGNALS:
      * @param newCount The new current number of desktops
      **/
     void countChanged(uint previousCount, uint newCount);
+
     /**
-     * Signal emitted whenever the number of virtual desktops changes in a way
-     * that existing desktops are removed.
-     *
-     * The signal is emitted after the @c count property has been updated but prior
-     * to the @link countChanged signal being emitted.
-     * @param previousCount The number of desktops prior to the change.
-     * @see countChanged
-     * @see setCount
-     * @see count
-     **/
-    //void desktopsRemoved(uint previousCount);
-    void desktopsRemoved(const QVector <KWin::VirtualDesktop *> &desktops);
+     * A new desktop has been created
+     * @param desktop the new just crated desktop
+     */
+    void desktopCreated(KWin::VirtualDesktop *desktop);
+
+    /**
+     * A desktop has been removed and is about to be deleted
+     * @param desktop the desktop that has been removed.
+     *          It's guaranteed to stil la valid pointer when the signal arrives,
+     *          but it's about to be deleted.
+     */
+    void desktopRemoved(KWin::VirtualDesktop *desktop);
+
     /**
      * Signal emitted whenever the current desktop changes.
      * @param previousDesktop The virtual desktop changed from
@@ -408,21 +423,6 @@ private Q_SLOTS:
 
 private:
     /**
-     * This method is called when the number of desktops is updated in a way that desktops
-     * are removed. At the time when this method is invoked the count property is already
-     * updated but the corresponding signal has not been emitted yet.
-     *
-     * Ensures that in case the current desktop is on one of the removed
-     * desktops the last desktop after the change becomes the new desktop.
-     * Emits the signal @link desktopsRemoved.
-     *
-     * @param previousCount The number of desktops prior to the change.
-     * @param previousCurrent The number of the previously current desktop.
-     * @see setCount
-     * @see desktopsRemoved
-     **/
-    void handleDesktopsRemoved(uint previousCount, uint previousCurrent);
-    /**
      * Generate a desktop layout from EWMH _NET_DESKTOP_LAYOUT property parameters.
      */
     void setNETDesktopLayout(Qt::Orientation orientation, uint width, uint height, int startingCorner);
@@ -462,6 +462,7 @@ private:
     // TODO: QPointer
     NETRootInfo *m_rootInfo;
     KSharedConfig::Ptr m_config;
+    bool m_isLoading = false;
 
     KWIN_SINGLETON_VARIABLE(VirtualDesktopManager, s_manager)
 };

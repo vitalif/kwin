@@ -392,27 +392,43 @@ void WaylandServer::shellClientShown(Toplevel *t)
 
 void WaylandServer::initWorkspace()
 {
-    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::countChanged, this,
-        [this](uint previousCount, uint newCount) {
-            if (previousCount < newCount) {
-                for (quint32 i = 1; i <= newCount - previousCount; ++i) {
-                    VirtualDesktop *internalDesktop = VirtualDesktopManager::self()->desktopForX11Id(previousCount + i);
-                    PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(internalDesktop->id());
-                    desktop->setName(internalDesktop->name());
-                    connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
-                        [this, desktop] () {
-                            VirtualDesktopManager::self()->setCurrent(VirtualDesktopManager::self()->desktopForId(desktop->id().toUtf8()));
-                        }
-                    );
+    //handle created: from VirtualDesktopManager to the wayland interface
+    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::desktopCreated, this,
+        [this](VirtualDesktop *desktop) {
+            PlasmaVirtualDesktopInterface *pvd = m_virtualDesktopManagement->createDesktop(desktop->id(), desktop->x11DesktopNumber() - 1);
+            pvd->setName(desktop->name());
+            pvd->sendDone();
+            connect(desktop, &VirtualDesktop::nameChanged, this,
+                [this, desktop, pvd]() {
+                    pvd->setName(desktop->name());
                 }
-            }
-        });
+            );
+        }
+    );
 
-    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::desktopsRemoved, this,
-        [this](const QVector <KWin::VirtualDesktop *> &desktops) {
-            for (auto desk : desktops) {
-                m_virtualDesktopManagement->removeDesktop(desk->id());
+    //handle removed: from VirtualDesktopManager to the wayland interface
+    connect(VirtualDesktopManager::self(), &VirtualDesktopManager::desktopRemoved, this,
+        [this](VirtualDesktop *desktop) {
+            m_virtualDesktopManagement->removeDesktop(desktop->id());
+        }
+    );
+
+    //create a new desktop when the client asks to
+    connect (m_virtualDesktopManagement, &PlasmaVirtualDesktopManagementInterface::desktopCreateRequested, this,
+        [this](const QString &name, quint32 position) {
+            VirtualDesktop *vd = VirtualDesktopManager::self()->createVirtualDesktop(position);
+            if (vd) {
+                vd->setName(name);
             }
+        }
+    );
+
+    //remove when the client asks to
+    connect (m_virtualDesktopManagement, &PlasmaVirtualDesktopManagementInterface::desktopRemoveRequested, this,
+        [this](const QString &id) {
+            //here there can be some nice kauthorized check?
+            //remove only from VirtualDesktopManager, the other connections will remove it from m_virtualDesktopManagement as well
+            VirtualDesktopManager::self()->removeVirtualDesktop(id.toUtf8());
         }
     );
 
@@ -421,6 +437,7 @@ void WaylandServer::initWorkspace()
         PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(internalDesktop->id());
 
         desktop->setName(desktop->name());
+        desktop->sendDone();
 
         connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
             [this, desktop] () {

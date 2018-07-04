@@ -219,17 +219,15 @@ void Workspace::init()
 
     // create VirtualDesktopManager and perform dependency injection
     VirtualDesktopManager *vds = VirtualDesktopManager::self();
-    connect(vds, &VirtualDesktopManager::desktopsRemoved, this,
-        [this](const QVector <KWin::VirtualDesktop *> &desktops) {
+    connect(vds, &VirtualDesktopManager::desktopRemoved, this,
+        [this](KWin::VirtualDesktop *desktop) {
             //Wayland
             if (waylandServer()) {
                 for (auto it = m_allClients.constBegin(); it != m_allClients.constEnd(); ++it) {
                     if (!(*it)->isOnAllDesktops() && (*it)->plasmaDesktops().count() == 1) {
                         const QString deskId = (*it)->plasmaDesktops().first();
-                        for (auto desk : desktops) {
-                            if (desk->id() == deskId) {
-                                sendClientToDesktop(*it, qMin(desk->x11DesktopNumber(), VirtualDesktopManager::self()->count()), true);
-                            }
+                        if (desktop->id() == deskId) {
+                            sendClientToDesktop(*it, qMin(desktop->x11DesktopNumber(), VirtualDesktopManager::self()->count()), true);
                         }
                     }
                 }

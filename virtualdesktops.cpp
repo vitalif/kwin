@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QUuid>
 
 #include <algorithm>
-#include <QDebug>
+
 namespace KWin {
 
 extern int screen_number;
@@ -339,21 +339,75 @@ VirtualDesktop *VirtualDesktopManager::desktopForId(const QByteArray &id) const
     }
 }
 
+VirtualDesktop *VirtualDesktopManager::createVirtualDesktop(uint number, const QString &name)
+{
+    //too many, can't insert new ones
+    if ((uint)m_desktops.count() == VirtualDesktopManager::maximum()) {
+        return nullptr;
+    }
+
+    const uint actualNumber = qBound<uint>(0, number, VirtualDesktopManager::maximum());
+    auto vd = new VirtualDesktop(this);
+    vd->setX11DesktopNumber(actualNumber);
+    //TODO: depend on Qt 5.11, use toString(QUuid::WithoutBraces)
+    vd->setId(QUuid::createUuid().toString().toUtf8());
+    vd->setName(name);
+    if (m_rootInfo) {
+        connect(vd, &VirtualDesktop::nameChanged, this,
+            [this, vd]() {
+                if (m_rootInfo) {
+                    m_rootInfo->setDesktopName(vd->x11DesktopNumber(), vd->name().toUtf8().data());
+                }
+            }
+        );
+        m_rootInfo->setDesktopName(vd->x11DesktopNumber(), vd->name().toUtf8().data());
+    }
+
+    //update the id of displaced desktops
+    for (uint i = actualNumber; i < (uint)m_desktops.count(); ++i) {
+        m_desktops[i]->setX11DesktopNumber(i + 1);
+        if (m_rootInfo) {
+            m_rootInfo->setDesktopName(i + 1, m_desktops[i]->name().toUtf8().data());
+        }
+    }
+
+    m_desktops.insert(actualNumber - 1, vd);
+    save();
+
+    emit desktopCreated(vd);
+    emit countChanged(m_desktops.count()-1, m_desktops.count());
+    return vd;
+}
+
 void VirtualDesktopManager::removeVirtualDesktop(const QByteArray &id)
 {
+    //don't end up without any desktop
+    if (m_desktops.count() == 1) {
+        return;
+    }
     auto desktop = desktopForId(id);
     if (!desktop) {
         return;
     }
 
+    const uint oldCurrent = m_current->x11DesktopNumber();
     const uint i = desktop->x11DesktopNumber() - 1;
     m_desktops.remove(i);
 
-    for (uint j = i; j < m_desktops.count(); ++j) {
-        m_desktops[j]->setX11DesktopNumber(j+1);
+    for (uint j = i; j < (uint)m_desktops.count(); ++j) {
+        m_desktops[j]->setX11DesktopNumber(j + 1);
+        if (m_rootInfo) {
+            m_rootInfo->setDesktopName(j + 1, m_desktops[j]->name().toUtf8().data());
+        }
     }
 
-    emit desktopsRemoved(QVector<VirtualDesktop *>({desktop}));
+    const uint newCurrent = qMin(oldCurrent, (uint)m_desktops.count());
+    m_current = m_desktops.at(newCurrent - 1);
+    if (oldCurrent != newCurrent) {
+        emit currentChanged(oldCurrent, newCurrent);
+    }
+
+    emit desktopRemoved(desktop);
 
     desktop->deleteLater();
 }
@@ -397,40 +451,51 @@ void VirtualDesktopManager::setCount(uint count)
         // nothing to change
         return;
     }
+    QList<VirtualDesktop *> newDesktops;
     const uint oldCount = m_desktops.count();
-    const uint oldCurrent = current();
     //this explicit check makes it more readable
-    if (m_desktops.count() > count) {
+    if ((uint)m_desktops.count() > count) {
         const auto desktopsToRemove = m_desktops.mid(count-1);
         m_desktops.resize(count);
-        emit desktopsRemoved(desktopsToRemove);
+        int oldCurrent = current();
         for (auto desktop : desktopsToRemove) {
+            emit desktopRemoved(desktop);
             desktop->deleteLater();
+        }
+        int newCurrent = qMin(oldCurrent, m_desktops.count());
+        m_current = m_desktops.at(newCurrent - 1);
+        if (oldCurrent != newCurrent) {
+            emit currentChanged(oldCurrent, newCurrent);
         }
     } else {
         while (uint(m_desktops.count()) < count) {
             auto vd = new VirtualDesktop(this);
             vd->setX11DesktopNumber(m_desktops.count() + 1);
+            if (!m_isLoading) {
+                vd->setId(QUuid::createUuid().toString().toUtf8());
+            }
             m_desktops << vd;
+            newDesktops << vd;
+            if (m_rootInfo) {
+                connect(vd, &VirtualDesktop::nameChanged, this,
+                    [this, vd]() {
+                        if (m_rootInfo) {
+                            m_rootInfo->setDesktopName(vd->x11DesktopNumber(), vd->name().toUtf8().data());
+                        }
+                    }
+                );
+                m_rootInfo->setDesktopName(vd->x11DesktopNumber(), vd->name().toUtf8().data());
+            }
         }
-    }
-    if (oldCount > count) {
-        handleDesktopsRemoved(oldCount, oldCurrent);
     }
 
     updateRootInfo();
 
     save();
-    emit countChanged(oldCount, m_desktops.count());
-}
-
-void VirtualDesktopManager::handleDesktopsRemoved(uint previousCount, uint previousCurrent)
-{
-    if (!m_current) {
-        m_current = m_desktops.last();
-        emit currentChanged(previousCurrent, m_current->x11DesktopNumber());
+    for (auto vd : newDesktops) {
+        emit desktopCreated(vd);
     }
-   // emit desktopsRemoved(previousCount);
+    emit countChanged(oldCount, m_desktops.count());
 }
 
 void VirtualDesktopManager::updateRootInfo()
@@ -477,6 +542,8 @@ void VirtualDesktopManager::load()
     if (!m_config) {
         return;
     }
+    //FIXME: how to avoid this?
+    m_isLoading = true;
     QString groupname;
     if (screen_number == 0) {
         groupname = QStringLiteral("Desktops");
@@ -518,6 +585,7 @@ void VirtualDesktopManager::load()
     }
 
     s_loadingDesktopSettings = false;
+    m_isLoading = false;
 }
 
 void VirtualDesktopManager::save()
