@@ -392,6 +392,7 @@ void WaylandServer::shellClientShown(Toplevel *t)
 
 void WaylandServer::initWorkspace()
 {
+    //TODO: RFC: those connections are better here or in VirtualDesktopManager itself?
     //handle created: from VirtualDesktopManager to the wayland interface
     connect(VirtualDesktopManager::self(), &VirtualDesktopManager::desktopCreated, this,
         [this](VirtualDesktop *desktop) {
