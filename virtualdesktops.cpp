@@ -46,8 +46,8 @@ VirtualDesktop::~VirtualDesktop()
 }
 
 void VirtualDesktop::setId(const QByteArray &id)
-{qWarning()<<m_id;
-    //Q_ASSERT(m_id.isEmpty());
+{
+    Q_ASSERT(m_id.isEmpty());
     m_id = id;
 }
 
@@ -350,7 +350,7 @@ VirtualDesktop *VirtualDesktopManager::createVirtualDesktop(uint number, const Q
     auto vd = new VirtualDesktop(this);
     vd->setX11DesktopNumber(actualNumber);
     //TODO: depend on Qt 5.11, use toString(QUuid::WithoutBraces)
-   // vd->setId(QUuid::createUuid().toString().toUtf8());
+    vd->setId(QUuid::createUuid().toString().toUtf8());
     vd->setName(name);
     if (m_rootInfo) {
         connect(vd, &VirtualDesktop::nameChanged, this,
@@ -471,7 +471,7 @@ void VirtualDesktopManager::setCount(uint count)
         while (uint(m_desktops.count()) < count) {
             auto vd = new VirtualDesktop(this);
             vd->setX11DesktopNumber(m_desktops.count() + 1);
-            if (!m_isLoading&&0) {
+            if (!m_isLoading) {
                 vd->setId(QUuid::createUuid().toString().toUtf8());
             }
             m_desktops << vd;
@@ -566,7 +566,12 @@ void VirtualDesktopManager::load()
         if (s.isEmpty()) {
             s = QUuid::createUuid().toString();
         }
-        m_desktops[i-1]->setId(s.toUtf8().data());
+        //load gets called 2 times, see workspace.cpp line 416 and BUG 385260
+        if (m_desktops[i-1]->id().isEmpty()) {
+            m_desktops[i-1]->setId(s.toUtf8().data());
+        } else {
+            Q_ASSERT(m_desktops[i-1]->id() == s.toUtf8().data());
+        }
 
         // TODO: update desktop focus chain, why?
 //         m_desktopFocusChain.value()[i-1] = i;
