@@ -59,8 +59,6 @@ public:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
     QStringList activities() const override;
-    QStringList plasmaDesktops() const override;
-    void unSetDesktop(int desktop) override;
     QPoint clientContentPos() const override;
     QSize clientSize() const override;
     QRect transparentRect() const override;
@@ -169,7 +167,6 @@ protected:
     void addDamage(const QRegion &damage) override;
     bool belongsToSameApplication(const AbstractClient *other, SameApplicationChecks checks) const override;
     void doSetActive() override;
-    void doSetDesktop(int desktop, int was_desk) override;
     Layer layerForDock() const override;
     void changeMaximize(bool horizontal, bool vertical, bool adjust) override;
     void setGeometryRestore(const QRect &geo) override {

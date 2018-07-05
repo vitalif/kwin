@@ -418,6 +418,7 @@ public:
     int desktop() const override {
         return m_desktop;
     }
+    QStringList plasmaDesktops() const override;
     void setMinimized(bool set);
     /**
     * Minimizes this client plus its transients
@@ -1087,6 +1088,7 @@ private:
     bool m_minimized = false;
     QTimer *m_autoRaiseTimer = nullptr;
     int m_desktop = 0; // 0 means not on any desktop yet
+    QStringList m_plasmaDesktops;
 
     QString m_colorScheme;
     std::shared_ptr<Decoration::DecorationPalette> m_palette;

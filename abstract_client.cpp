@@ -484,18 +484,48 @@ void AbstractClient::setDesktop(int desktop)
     if (desktop != NET::OnAllDesktops)   // Do range check
         desktop = qMax(1, qMin(numberOfDesktops, desktop));
     desktop = qMin(numberOfDesktops, rules()->checkDesktop(desktop));
-    if (m_desktop == desktop)
+
+    const QString desktopId = desktop == NET::OnAllDesktops ? QString() : VirtualDesktopManager::self()->desktopForX11Id(desktop)->id();
+
+    if (waylandServer()) {
+        if (m_plasmaDesktops.contains(desktopId)) {
+            return;
+        }
+    } else if (m_desktop == desktop) {
         return;
+    }
 
     int was_desk = m_desktop;
     const bool wasOnCurrentDesktop = isOnCurrentDesktop();
     m_desktop = desktop;
 
-    if (info) {
-        info->setDesktop(desktop);
+    //update plasmadesktops only in wayland
+    //can't check windowManagementInterface yet as it gets created only on first show
+    if (waylandServer()) {
+        if (desktop == NET::OnAllDesktops) {
+            m_plasmaDesktops.clear();
+        } else if (!m_plasmaDesktops.contains(desktopId)) {
+            if (m_plasmaDesktops.count() == VirtualDesktopManager::self()->count() - 1) {
+                m_plasmaDesktops.clear();
+                m_desktop = NET::OnAllDesktops;
+            } else {
+                m_plasmaDesktops << desktopId;
+            }
+        }
+        if (windowManagementInterface()) {
+            if (m_desktop == NET::OnAllDesktops) {
+                windowManagementInterface()->setOnAllDesktops(true);
+            } else {
+                windowManagementInterface()->addPlasmaVirtualDesktop(desktopId);
+            }
+        }
     }
 
-    if ((was_desk == NET::OnAllDesktops) != (desktop == NET::OnAllDesktops)) {
+    if (info) {
+        info->setDesktop(m_desktop);
+    }
+
+    if ((was_desk == NET::OnAllDesktops) != (m_desktop == NET::OnAllDesktops)) {
         // onAllDesktops changed
         workspace()->updateOnAllDesktopsOfTransients(this);
     }
@@ -504,17 +534,17 @@ void AbstractClient::setDesktop(int desktop)
     for (auto it = transients_stacking_order.constBegin();
             it != transients_stacking_order.constEnd();
             ++it)
-        (*it)->setDesktop(desktop);
+        (*it)->setDesktop(m_desktop);
 
     if (isModal())  // if a modal dialog is moved, move the mainwindow with it as otherwise
         // the (just moved) modal dialog will confusingly return to the mainwindow with
         // the next desktop change
     {
         foreach (AbstractClient * c2, mainClients())
-        c2->setDesktop(desktop);
+        c2->setDesktop(m_desktop);
     }
 
-    doSetDesktop(desktop, was_desk);
+    doSetDesktop(m_desktop, was_desk);
 
     FocusChain::self()->update(this, FocusChain::MakeFirst);
     updateWindowRules(Rules::Desktop);
@@ -522,6 +552,11 @@ void AbstractClient::setDesktop(int desktop)
     emit desktopChanged();
     if (wasOnCurrentDesktop != isOnCurrentDesktop())
         emit desktopPresenceChanged(this, was_desk);
+}
+
+QStringList AbstractClient::plasmaDesktops() const
+{
+    return m_plasmaDesktops;
 }
 
 void AbstractClient::doSetDesktop(int desktop, int was_desk)
@@ -532,7 +567,15 @@ void AbstractClient::doSetDesktop(int desktop, int was_desk)
 
 void AbstractClient::unSetDesktop(int desktop)
 {
-    Q_UNUSED(desktop)
+    const QString desktopId = VirtualDesktopManager::self()->desktopForX11Id(desktop)->id();
+
+    m_plasmaDesktops.removeAll(desktopId);
+
+    if (!windowManagementInterface()) {
+        return;
+    }
+
+    windowManagementInterface()->removePlasmaVirtualDesktop(desktopId);
 }
 
 void AbstractClient::setOnAllDesktops(bool b)
@@ -808,16 +851,7 @@ void AbstractClient::setupWindowManagementInterface()
         }
     );
     connect(this, &AbstractClient::captionChanged, w, [w, this] { w->setTitle(caption()); });
-    connect(this, &AbstractClient::desktopChanged, w,
-        [w, this] {
-            if (isOnAllDesktops()) {
-                w->setOnAllDesktops(true);
-                return;
-            }
-            w->setVirtualDesktop(desktop() - 1);
-            w->setOnAllDesktops(false);
-        }
-    );
+
     connect(this, &AbstractClient::activeChanged, w, [w, this] { w->setActive(isActive()); });
     connect(this, &AbstractClient::fullScreenChanged, w, [w, this] { w->setFullscreen(isFullScreen()); });
     connect(this, &AbstractClient::keepAboveChanged, w, &PlasmaWindowInterface::setKeepAbove);
@@ -913,12 +947,26 @@ void AbstractClient::setupWindowManagementInterface()
         }
     );
 
-    w->addPlasmaVirtualDesktop(VirtualDesktopManager::self()->currentDesktop()->id());
+    for (const auto id : m_plasmaDesktops) {
+        w->addPlasmaVirtualDesktop(id);
+    }
+
+    //this is only for the legacy
+    connect(this, &AbstractClient::desktopChanged, w,
+        [w, this] {
+            if (isOnAllDesktops()) {
+                w->setOnAllDesktops(true);
+                return;
+            }
+            w->setVirtualDesktop(desktop() - 1);
+            w->setOnAllDesktops(false);
+        }
+    );
+
     //Plasma Virtual desktop management
     //show/hide when the window enters/exits from desktop
     connect(w, &PlasmaWindowInterface::enterPlasmaVirtualDesktopRequested, this,
         [this] (const QString &desktopId) {
-            m_windowManagementInterface->addPlasmaVirtualDesktop(desktopId);
             VirtualDesktop *vd = VirtualDesktopManager::self()->desktopForId(desktopId.toUtf8());
             if (vd) {
                 workspace()->sendClientToDesktop(this, vd->x11DesktopNumber(), false);
@@ -941,7 +989,7 @@ void AbstractClient::setupWindowManagementInterface()
     );
 
     //set initial visibility
-    if (w->plasmaVirtualDesktops().isEmpty() || w->plasmaVirtualDesktops().contains(VirtualDesktopManager::self()->currentDesktop()->id())) {
+    if (m_plasmaDesktops.isEmpty() || m_plasmaDesktops.contains(VirtualDesktopManager::self()->currentDesktop()->id())) {
         emit windowShown(this);
     } else {
         workspace()->clientHidden(this);

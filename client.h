@@ -122,7 +122,6 @@ public:
     void destroyClient();
 
     virtual QStringList activities() const;
-    QStringList plasmaDesktops() const override;
     void setOnActivity(const QString &activity, bool enable);
     void setOnAllActivities(bool set) override;
     void setOnActivities(QStringList newActivitiesList) override;

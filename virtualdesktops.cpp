@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QUuid>
 
 #include <algorithm>
-
+#include <QDebug>
 namespace KWin {
 
 extern int screen_number;
@@ -46,8 +46,8 @@ VirtualDesktop::~VirtualDesktop()
 }
 
 void VirtualDesktop::setId(const QByteArray &id)
-{
-    Q_ASSERT(m_id.isEmpty());
+{qWarning()<<m_id;
+    //Q_ASSERT(m_id.isEmpty());
     m_id = id;
 }
 
@@ -350,7 +350,7 @@ VirtualDesktop *VirtualDesktopManager::createVirtualDesktop(uint number, const Q
     auto vd = new VirtualDesktop(this);
     vd->setX11DesktopNumber(actualNumber);
     //TODO: depend on Qt 5.11, use toString(QUuid::WithoutBraces)
-    vd->setId(QUuid::createUuid().toString().toUtf8());
+   // vd->setId(QUuid::createUuid().toString().toUtf8());
     vd->setName(name);
     if (m_rootInfo) {
         connect(vd, &VirtualDesktop::nameChanged, this,
@@ -471,7 +471,7 @@ void VirtualDesktopManager::setCount(uint count)
         while (uint(m_desktops.count()) < count) {
             auto vd = new VirtualDesktop(this);
             vd->setX11DesktopNumber(m_desktops.count() + 1);
-            if (!m_isLoading) {
+            if (!m_isLoading&&0) {
                 vd->setId(QUuid::createUuid().toString().toUtf8());
             }
             m_desktops << vd;

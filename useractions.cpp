@@ -402,6 +402,7 @@ void UserActionsMenu::discard()
     delete m_menu;
     m_menu = NULL;
     m_desktopMenu = NULL;
+    m_plasmaDesktopMenu = nullptr;
     m_screenMenu = NULL;
     m_activityMenu = NULL;
     m_switchToTabMenu = NULL;
@@ -417,6 +418,8 @@ void UserActionsMenu::menuAboutToShow()
     if (VirtualDesktopManager::self()->count() == 1) {
         delete m_desktopMenu;
         m_desktopMenu = 0;
+        delete m_plasmaDesktopMenu;
+        m_plasmaDesktopMenu = nullptr;
     } else {
         initDesktopPopup();
     }
@@ -604,7 +607,7 @@ void UserActionsMenu::initTabbingPopups()
 
 void UserActionsMenu::initDesktopPopup()
 {
-    if (qobject_cast<ShellClient*>(m_client.data())) { 
+    if (m_client.data()->surface()) { 
         if (m_plasmaDesktopMenu) {
             return;
         }

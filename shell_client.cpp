@@ -414,39 +414,6 @@ QStringList ShellClient::activities() const
     return QStringList();
 }
 
-QStringList ShellClient::plasmaDesktops() const
-{
-    if (!windowManagementInterface()) {
-        return QStringList();
-    }
-
-    return windowManagementInterface()->plasmaVirtualDesktops();
-}
-
-void ShellClient::doSetDesktop(int desktop, int was_desk)
-{
-    //we need to redo this, because it can be set again to the same desktop number,
-    //because the old desktop may have been deleted
-    if (!windowManagementInterface()/* || desktop == was_desk*/) {
-        return;
-    }
-
-    if (desktop == NET::OnAllDesktops) {
-        windowManagementInterface()->setOnAllDesktops(true);
-    } else {
-        windowManagementInterface()->addPlasmaVirtualDesktop(VirtualDesktopManager::self()->desktopForX11Id(desktop)->id());
-    }
-}
-
-void ShellClient::unSetDesktop(int desktop)
-{
-    if (!windowManagementInterface()) {
-        return;
-    }
-
-    windowManagementInterface()->removePlasmaVirtualDesktop(VirtualDesktopManager::self()->desktopForX11Id(desktop)->id());
-}
-
 QPoint ShellClient::clientContentPos() const
 {
     return -1 * clientPos();
