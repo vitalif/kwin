@@ -98,6 +98,7 @@ public:
     QString currentActivity() const override;
     int currentDesktop() const override;
     int numberOfDesktops() const override;
+    int desktopNumberFromId(const QString &id) const override;
     void setCurrentDesktop(int desktop) override;
     void setNumberOfDesktops(int desktops) override;
     QSize desktopGridSize() const override;
@@ -387,6 +388,9 @@ public:
 
     void setData(int role, const QVariant &data);
     QVariant data(int role) const;
+
+    bool isOnDesktop(int d) const override;
+    QStringList plasmaDesktops() const override;
 
     void registerThumbnail(AbstractThumbnailItem *item);
     QHash<WindowThumbnailItem*, QWeakPointer<EffectWindowImpl> > const &thumbnails() const {

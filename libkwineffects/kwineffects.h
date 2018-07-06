@@ -952,6 +952,7 @@ public:
      * @returns Total number of desktops currently in existence.
      */
     virtual int numberOfDesktops() const = 0;
+    virtual int desktopNumberFromId(const QString &id) const = 0;
     /**
      * Set the current desktop to @a desktop.
      */
@@ -1987,10 +1988,11 @@ public:
     bool isOnAllActivities() const;
     QStringList activities() const;
 
-    bool isOnDesktop(int d) const;
+    virtual bool isOnDesktop(int d) const;
     bool isOnCurrentDesktop() const;
     bool isOnAllDesktops() const;
     int desktop() const; // prefer isOnXXX()
+    virtual QStringList plasmaDesktops() const = 0;
 
     int x() const;
     int y() const;

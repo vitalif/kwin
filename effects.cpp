@@ -911,6 +911,15 @@ int EffectsHandlerImpl::numberOfDesktops() const
     return VirtualDesktopManager::self()->count();
 }
 
+int EffectsHandlerImpl::desktopNumberFromId(const QString &id) const
+{
+    VirtualDesktop *vd = VirtualDesktopManager::self()->desktopForId(id.toUtf8());
+    if (vd) {
+        return vd->x11DesktopNumber();
+    }
+    return 0;
+}
+
 void EffectsHandlerImpl::setCurrentDesktop(int desktop)
 {
     VirtualDesktopManager::self()->setCurrent(desktop);
@@ -1732,6 +1741,16 @@ QVariant EffectWindowImpl::data(int role) const
     if (!dataMap.contains(role))
         return QVariant();
     return dataMap[ role ];
+}
+
+bool EffectWindowImpl::isOnDesktop(int d) const
+{
+    return toplevel->isOnDesktop(d);
+}
+
+QStringList EffectWindowImpl::plasmaDesktops() const
+{
+    return toplevel->plasmaDesktops();
 }
 
 EffectWindow* effectWindow(Toplevel* w)

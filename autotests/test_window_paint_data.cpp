@@ -72,6 +72,7 @@ public:
     virtual void setData(int role, const QVariant &data);
     virtual void referencePreviousWindowPixmap() {}
     virtual void unreferencePreviousWindowPixmap() {}
+    virtual QStringList plasmaDesktops() const {return QStringList();}
 };
 
 MockEffectWindow::MockEffectWindow(QObject *parent)
