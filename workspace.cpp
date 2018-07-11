@@ -224,9 +224,9 @@ void Workspace::init()
             //Wayland
             if (waylandServer()) {
                 for (auto it = m_allClients.constBegin(); it != m_allClients.constEnd(); ++it) {
-                    if (!(*it)->isOnAllDesktops() && (*it)->plasmaDesktops().count() == 1) {
-                        const QString deskId = (*it)->plasmaDesktops().first();
-                        if (desktop->id() == deskId) {
+                    if (!(*it)->isOnAllDesktops() && (*it)->desktops().count() == 1) {
+                        const VirtualDesktop *otherDesktop = (*it)->desktops().first();
+                        if (desktop == otherDesktop) {
                             sendClientToDesktop(*it, qMin(desktop->x11DesktopNumber(), VirtualDesktopManager::self()->count()), true);
                         }
                     }

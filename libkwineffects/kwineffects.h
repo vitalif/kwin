@@ -1992,7 +1992,7 @@ public:
     bool isOnCurrentDesktop() const;
     bool isOnAllDesktops() const;
     int desktop() const; // prefer isOnXXX()
-    virtual QStringList plasmaDesktops() const = 0;
+    virtual QList<int> desktops() const = 0;
 
     int x() const;
     int y() const;

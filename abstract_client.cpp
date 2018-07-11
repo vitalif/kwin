@@ -485,10 +485,10 @@ void AbstractClient::setDesktop(int desktop)
         desktop = qMax(1, qMin(numberOfDesktops, desktop));
     desktop = qMin(numberOfDesktops, rules()->checkDesktop(desktop));
 
-    const QString desktopId = desktop == NET::OnAllDesktops ? QString() : VirtualDesktopManager::self()->desktopForX11Id(desktop)->id();
+    VirtualDesktop *virtualDesktop = desktop == NET::OnAllDesktops ? nullptr : VirtualDesktopManager::self()->desktopForX11Id(desktop);
 
     if (waylandServer()) {
-        if (m_plasmaDesktops.contains(desktopId)) {
+        if (m_desktops.contains(virtualDesktop)) {
             return;
         }
     } else if (m_desktop == desktop) {
@@ -499,27 +499,29 @@ void AbstractClient::setDesktop(int desktop)
     const bool wasOnCurrentDesktop = isOnCurrentDesktop();
     m_desktop = desktop;
 
-    //update plasmadesktops only in wayland
     //can't check windowManagementInterface yet as it gets created only on first show
-    if (waylandServer()) {
-        if (desktop == NET::OnAllDesktops) {
-            m_plasmaDesktops.clear();
-        } else if (!m_plasmaDesktops.contains(desktopId)) {
-            if (m_plasmaDesktops.count() == VirtualDesktopManager::self()->count() - 1) {
-                m_plasmaDesktops.clear();
-                m_desktop = NET::OnAllDesktops;
-            } else {
-                m_plasmaDesktops << desktopId;
-            }
-        }
-        if (windowManagementInterface()) {
-            if (m_desktop == NET::OnAllDesktops) {
-                windowManagementInterface()->setOnAllDesktops(true);
-            } else {
-                windowManagementInterface()->addPlasmaVirtualDesktop(desktopId);
-            }
+    //on x11 only one desktop at a time
+    if (!waylandServer()) {
+        m_desktops.clear();
+    }
+    if (desktop == NET::OnAllDesktops) {
+        m_desktops.clear();
+    } else if (!m_desktops.contains(virtualDesktop)) {
+        if (m_desktops.count() == VirtualDesktopManager::self()->count() - 1) {
+            m_desktops.clear();
+            m_desktop = NET::OnAllDesktops;
+        } else {
+            m_desktops << virtualDesktop;
         }
     }
+    if (windowManagementInterface()) {
+        if (m_desktop == NET::OnAllDesktops) {
+            windowManagementInterface()->setOnAllDesktops(true);
+        } else {
+            windowManagementInterface()->addPlasmaVirtualDesktop(virtualDesktop->id());
+        }
+    }
+
 
     if (info) {
         info->setDesktop(m_desktop);
@@ -554,11 +556,6 @@ void AbstractClient::setDesktop(int desktop)
         emit desktopPresenceChanged(this, was_desk);
 }
 
-QStringList AbstractClient::plasmaDesktops() const
-{
-    return m_plasmaDesktops;
-}
-
 void AbstractClient::doSetDesktop(int desktop, int was_desk)
 {
     Q_UNUSED(desktop)
@@ -567,15 +564,15 @@ void AbstractClient::doSetDesktop(int desktop, int was_desk)
 
 void AbstractClient::unSetDesktop(int desktop)
 {
-    const QString desktopId = VirtualDesktopManager::self()->desktopForX11Id(desktop)->id();
+    VirtualDesktop *virtualDesktop = VirtualDesktopManager::self()->desktopForX11Id(desktop);
 
-    m_plasmaDesktops.removeAll(desktopId);
+    m_desktops.removeAll(virtualDesktop);
 
     if (!windowManagementInterface()) {
         return;
     }
 
-    windowManagementInterface()->removePlasmaVirtualDesktop(desktopId);
+    windowManagementInterface()->removePlasmaVirtualDesktop(virtualDesktop->id());
 }
 
 void AbstractClient::setOnAllDesktops(bool b)
@@ -947,8 +944,8 @@ void AbstractClient::setupWindowManagementInterface()
         }
     );
 
-    for (const auto id : m_plasmaDesktops) {
-        w->addPlasmaVirtualDesktop(id);
+    for (const auto vd : m_desktops) {
+        w->addPlasmaVirtualDesktop(vd->id());
     }
 
     //this is only for the legacy
@@ -989,7 +986,7 @@ void AbstractClient::setupWindowManagementInterface()
     );
 
     //set initial visibility
-    if (m_plasmaDesktops.isEmpty() || m_plasmaDesktops.contains(VirtualDesktopManager::self()->currentDesktop()->id())) {
+    if (m_desktops.isEmpty() || m_desktops.contains(VirtualDesktopManager::self()->currentDesktop())) {
         emit windowShown(this);
     } else {
         workspace()->clientHidden(this);

@@ -145,10 +145,10 @@ private Q_SLOTS:
      **/
     void desktopPopupAboutToShow();
     /**
-     * Adjusts the PlasmaDesktop popup to the current values and the location of
+     * Adjusts the multipleDesktopsMenu popup to the current values and the location of
      * the Client, Wayland only.
      **/
-    void plasmaDesktopPopupAboutToShow();
+    void multipleDesktopsPopupAboutToShow();
     /**
      * Adjusts the screen popup to the current values and the location of
      * the Client.
@@ -170,7 +170,7 @@ private Q_SLOTS:
      *
      * @param action Invoked Action containing the Desktop as data element
      **/
-    void slotToggleOnPlasmaDesktop(QAction *action);
+    void slotToggleOnVirtualDesktop(QAction *action);
     /**
      * Sends the Client to screen \a screen
      *
@@ -231,7 +231,7 @@ private:
     /**
      * The move to desktop sub menu, with the Wayland protocol.
      **/
-    QMenu* m_plasmaDesktopMenu;
+    QMenu* m_multipleDesktopsMenu;
     /**
      * The move to screen sub menu.
      **/

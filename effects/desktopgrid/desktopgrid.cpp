@@ -1378,12 +1378,11 @@ QVector<int> DesktopGridEffect::desktopList(const EffectWindow *w) const
     //Wayland, arbitrary desktops per window
     if (w->surface()) {
         static QVector<int> desktops;
-        desktops.resize(w->plasmaDesktops().count());
+        desktops.resize(w->desktops().count());
         int i = 0;
-        for (const auto &id : w->plasmaDesktops()) {
-            const int n = effects->desktopNumberFromId(id);
-            if (n > 0) {
-                desktops[i++] = -1;
+        for (const int desk : w->desktops()) {
+            if (desk > 0) {
+                desktops[i++] = desk;
             }
         }
         return desktops;

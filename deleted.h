@@ -52,7 +52,7 @@ public:
     void discard();
     virtual int desktop() const;
     virtual QStringList activities() const;
-    virtual QStringList plasmaDesktops() const;
+    virtual QList<VirtualDesktop *> desktops() const;
     virtual QPoint clientPos() const;
     virtual QSize clientSize() const;
     QPoint clientContentPos() const override {

@@ -1748,9 +1748,14 @@ bool EffectWindowImpl::isOnDesktop(int d) const
     return toplevel->isOnDesktop(d);
 }
 
-QStringList EffectWindowImpl::plasmaDesktops() const
+QList<int> EffectWindowImpl::desktops() const
 {
-    return toplevel->plasmaDesktops();
+    QList<int> desks;
+
+    for (auto vd : toplevel->desktops()) {
+        desks << vd->x11DesktopNumber();
+    }
+    return desks;
 }
 
 EffectWindow* effectWindow(Toplevel* w)

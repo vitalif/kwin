@@ -123,9 +123,9 @@ QStringList Unmanaged::activities() const
     return QStringList();
 }
 
-QStringList Unmanaged::plasmaDesktops() const
+QList<VirtualDesktop *> Unmanaged::desktops() const
 {
-    return QStringList();
+    return QList<VirtualDesktop *>();
 }
 
 QPoint Unmanaged::clientPos() const

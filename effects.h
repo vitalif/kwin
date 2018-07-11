@@ -390,7 +390,7 @@ public:
     QVariant data(int role) const;
 
     bool isOnDesktop(int d) const override;
-    QStringList plasmaDesktops() const override;
+    QList<int> desktops() const override;
 
     void registerThumbnail(AbstractThumbnailItem *item);
     QHash<WindowThumbnailItem*, QWeakPointer<EffectWindowImpl> > const &thumbnails() const {

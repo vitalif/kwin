@@ -285,8 +285,8 @@ public:
      * isOnDesktop() instead.
      */
     virtual int desktop() const = 0;
+    virtual QList<VirtualDesktop *> desktops() const = 0;
     virtual QStringList activities() const = 0;
-    virtual QStringList plasmaDesktops() const = 0;
     bool isOnDesktop(int d) const;
     bool isOnActivity(const QString &activity) const;
     bool isOnCurrentDesktop() const;
@@ -779,7 +779,7 @@ inline bool Toplevel::isOnAllDesktops() const
 {
     return surface()
         //Wayland
-        ? plasmaDesktops().isEmpty()
+        ? desktops().isEmpty()
         //X11
         : desktop() == NET::OnAllDesktops;
 }
@@ -791,7 +791,7 @@ inline bool Toplevel::isOnAllActivities() const
 
 inline bool Toplevel::isOnDesktop(int d) const
 {
-    return (surface() ? plasmaDesktops().contains(VirtualDesktopManager::self()->desktopForX11Id(d)->id()) : desktop() == d) || isOnAllDesktops();
+    return (surface() ? desktops().contains(VirtualDesktopManager::self()->desktopForX11Id(d)) : desktop() == d) || isOnAllDesktops();
 }
 
 inline bool Toplevel::isOnActivity(const QString &activity) const
