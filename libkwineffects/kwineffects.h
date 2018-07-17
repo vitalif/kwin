@@ -952,7 +952,6 @@ public:
      * @returns Total number of desktops currently in existence.
      */
     virtual int numberOfDesktops() const = 0;
-    virtual int desktopNumberFromId(const QString &id) const = 0;
     /**
      * Set the current desktop to @a desktop.
      */

@@ -911,15 +911,6 @@ int EffectsHandlerImpl::numberOfDesktops() const
     return VirtualDesktopManager::self()->count();
 }
 
-int EffectsHandlerImpl::desktopNumberFromId(const QString &id) const
-{
-    VirtualDesktop *vd = VirtualDesktopManager::self()->desktopForId(id.toUtf8());
-    if (vd) {
-        return vd->x11DesktopNumber();
-    }
-    return 0;
-}
-
 void EffectsHandlerImpl::setCurrentDesktop(int desktop)
 {
     VirtualDesktopManager::self()->setCurrent(desktop);

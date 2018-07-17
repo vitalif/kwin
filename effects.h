@@ -98,7 +98,6 @@ public:
     QString currentActivity() const override;
     int currentDesktop() const override;
     int numberOfDesktops() const override;
-    int desktopNumberFromId(const QString &id) const override;
     void setCurrentDesktop(int desktop) override;
     void setNumberOfDesktops(int desktops) override;
     QSize desktopGridSize() const override;

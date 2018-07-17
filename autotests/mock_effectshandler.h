@@ -156,9 +156,6 @@ public:
     int numberOfDesktops() const override {
         return 0;
     }
-    int desktopNumberFromId(const QString&) const override {
-        return 0;
-    }
     int numScreens() const override {
         return 0;
     }
