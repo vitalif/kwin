@@ -722,10 +722,7 @@ void UserActionsMenu::multipleDesktopsPopupAboutToShow()
     QAction *action = m_multipleDesktopsMenu->addAction(i18n("&All Desktops"));
     action->setData(0);
     action->setCheckable(true);
-    QActionGroup *allDesktopsGroup;
-    if (!allDesktopsGroup) {
-        allDesktopsGroup = new QActionGroup(m_multipleDesktopsMenu);
-    }
+    QActionGroup *allDesktopsGroup = new QActionGroup(m_multipleDesktopsMenu);
     allDesktopsGroup->addAction(action);
 
     if (!m_client.isNull() && m_client.data()->isOnAllDesktops()) {

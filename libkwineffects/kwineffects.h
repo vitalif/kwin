@@ -1987,11 +1987,11 @@ public:
     bool isOnAllActivities() const;
     QStringList activities() const;
 
-    virtual bool isOnDesktop(int d) const;
+    bool isOnDesktop(int d) const;
     bool isOnCurrentDesktop() const;
     bool isOnAllDesktops() const;
     int desktop() const; // prefer isOnXXX()
-    virtual QList<int> desktops() const = 0;
+    QList<int> desktops() const;
 
     int x() const;
     int y() const;

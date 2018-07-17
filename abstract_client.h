@@ -84,12 +84,17 @@ class KWIN_EXPORT AbstractClient : public Toplevel
     Q_PROPERTY(bool active READ isActive NOTIFY activeChanged)
     /**
      * The desktop this Client is on. If the Client is on all desktops the property has value -1.
+     * This is a legacy property, use x11DesktopIds instead
      **/
     Q_PROPERTY(int desktop READ desktop WRITE setDesktop NOTIFY desktopChanged)
     /**
      * Whether the Client is on all desktops. That is desktop is -1.
      **/
     Q_PROPERTY(bool onAllDesktops READ isOnAllDesktops WRITE setOnAllDesktops NOTIFY desktopChanged)
+    /**
+     * The x11 ids for all desktops this client is in. On X11 this list will always have a length of 1
+     **/
+    Q_PROPERTY(QList<int> x11DesktopIds READ x11DesktopIds NOTIFY x11DesktopIdsChanged)
     /**
      * Indicates that the window should not be included on a taskbar.
      **/
@@ -421,6 +426,8 @@ public:
     virtual QList<VirtualDesktop *> desktops() const {
         return m_desktops;
     }
+    QList<int> x11DesktopIds() const;
+
     void setMinimized(bool set);
     /**
     * Minimizes this client plus its transients
@@ -740,6 +747,7 @@ Q_SIGNALS:
     void demandsAttentionChanged();
     void desktopPresenceChanged(KWin::AbstractClient*, int); // to be forwarded by Workspace
     void desktopChanged();
+    void x11DesktopIdsChanged();
     void shadeChanged();
     void minimizedChanged();
     void clientMinimized(KWin::AbstractClient* client, bool animate);

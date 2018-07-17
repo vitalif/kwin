@@ -550,6 +550,7 @@ void AbstractClient::setDesktop(int desktop)
     emit desktopChanged();
     if (wasOnCurrentDesktop != isOnCurrentDesktop())
         emit desktopPresenceChanged(this, was_desk);
+    emit x11DesktopIdsChanged();
 }
 
 void AbstractClient::doSetDesktop(int desktop, int was_desk)
@@ -569,6 +570,7 @@ void AbstractClient::unSetDesktop(int desktop)
     }
 
     windowManagementInterface()->removePlasmaVirtualDesktop(virtualDesktop->id());
+    emit x11DesktopIdsChanged();
 }
 
 void AbstractClient::setOnAllDesktops(bool b)
@@ -580,6 +582,16 @@ void AbstractClient::setOnAllDesktops(bool b)
         setDesktop(NET::OnAllDesktops);
     else
         setDesktop(VirtualDesktopManager::self()->current());
+}
+
+QList<int> AbstractClient::x11DesktopIds() const
+{
+    QList<int> desks;
+
+    for (auto vd : desktops()) {
+        desks << vd->x11DesktopNumber();
+    }
+    return desks;
 }
 
 bool AbstractClient::isShadeable() const

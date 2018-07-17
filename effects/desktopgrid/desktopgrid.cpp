@@ -1375,30 +1375,7 @@ QVector<int> DesktopGridEffect::desktopList(const EffectWindow *w) const
         return allDesktops;
     }
 
-    //Wayland, arbitrary desktops per window
-    if (w->surface()) {
-        static QVector<int> desktops;
-        desktops.resize(w->desktops().count());
-        int i = 0;
-        for (const int desk : w->desktops()) {
-            if (desk > 0) {
-                desktops[i++] = desk;
-            }
-        }
-        return desktops;
-    //X11 one desktop per window
-    } else {
-        if (w->desktop() > effects->numberOfDesktops() || w->desktop() < 1) { // sic! desktops are [1,n]
-            static QVector<int> emptyVector;
-            emptyVector.resize(0);
-            return emptyVector;
-        }
-
-        static QVector<int> singleDesktop;
-        singleDesktop.resize(1);
-        singleDesktop[0] = w->desktop() - 1;
-        return singleDesktop;
-    }
+    return w->desktops().toVector();
 }
 
 bool DesktopGridEffect::isActive() const

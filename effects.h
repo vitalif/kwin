@@ -388,9 +388,6 @@ public:
     void setData(int role, const QVariant &data);
     QVariant data(int role) const;
 
-    bool isOnDesktop(int d) const override;
-    QList<int> desktops() const override;
-
     void registerThumbnail(AbstractThumbnailItem *item);
     QHash<WindowThumbnailItem*, QWeakPointer<EffectWindowImpl> > const &thumbnails() const {
         return m_thumbnails;

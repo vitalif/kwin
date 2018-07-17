@@ -1734,21 +1734,6 @@ QVariant EffectWindowImpl::data(int role) const
     return dataMap[ role ];
 }
 
-bool EffectWindowImpl::isOnDesktop(int d) const
-{
-    return toplevel->isOnDesktop(d);
-}
-
-QList<int> EffectWindowImpl::desktops() const
-{
-    QList<int> desks;
-
-    for (auto vd : toplevel->desktops()) {
-        desks << vd->x11DesktopNumber();
-    }
-    return desks;
-}
-
 EffectWindow* effectWindow(Toplevel* w)
 {
     EffectWindowImpl* ret = w->effectWindow();
