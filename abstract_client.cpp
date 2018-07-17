@@ -487,11 +487,7 @@ void AbstractClient::setDesktop(int desktop)
 
     VirtualDesktop *virtualDesktop = desktop == NET::OnAllDesktops ? nullptr : VirtualDesktopManager::self()->desktopForX11Id(desktop);
 
-    if (waylandServer()) {
-        if (m_desktops.contains(virtualDesktop)) {
-            return;
-        }
-    } else if (m_desktop == desktop) {
+    if (m_desktops.contains(virtualDesktop)) {
         return;
     }
 
@@ -501,12 +497,13 @@ void AbstractClient::setDesktop(int desktop)
 
     //can't check windowManagementInterface yet as it gets created only on first show
     //on x11 only one desktop at a time
-    if (!waylandServer()) {
+    if (kwinApp()->operationMode() == Application::OperationModeX11) {
         m_desktops.clear();
     }
     if (desktop == NET::OnAllDesktops) {
         m_desktops.clear();
-    } else if (!m_desktops.contains(virtualDesktop)) {
+    } else {
+        //if would become on all desktops, clear the list, as empty== on all desktops
         if (m_desktops.count() == VirtualDesktopManager::self()->count() - 1) {
             m_desktops.clear();
             m_desktop = NET::OnAllDesktops;
@@ -515,13 +512,12 @@ void AbstractClient::setDesktop(int desktop)
         }
     }
     if (windowManagementInterface()) {
-        if (m_desktop == NET::OnAllDesktops) {
+        if (m_desktops.isEmpty()) {
             windowManagementInterface()->setOnAllDesktops(true);
         } else {
             windowManagementInterface()->addPlasmaVirtualDesktop(virtualDesktop->id());
         }
     }
-
 
     if (info) {
         info->setDesktop(m_desktop);

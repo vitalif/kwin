@@ -607,7 +607,8 @@ void UserActionsMenu::initTabbingPopups()
 
 void UserActionsMenu::initDesktopPopup()
 {
-    if (m_client.data()->surface()) { 
+    if (kwinApp()->operationMode() == Application::OperationModeWaylandOnly ||
+        kwinApp()->operationMode() == Application::OperationModeXwayland) { 
         if (m_multipleDesktopsMenu) {
             return;
         }
@@ -721,7 +722,7 @@ void UserActionsMenu::multipleDesktopsPopupAboutToShow()
     QAction *action = m_multipleDesktopsMenu->addAction(i18n("&All Desktops"));
     action->setData(0);
     action->setCheckable(true);
-    static QPointer<QActionGroup> allDesktopsGroup;
+    QActionGroup *allDesktopsGroup;
     if (!allDesktopsGroup) {
         allDesktopsGroup = new QActionGroup(m_multipleDesktopsMenu);
     }

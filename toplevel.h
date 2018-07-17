@@ -777,7 +777,8 @@ const EffectWindowImpl* Toplevel::effectWindow() const
 
 inline bool Toplevel::isOnAllDesktops() const
 {
-    return surface()
+    return kwinApp()->operationMode() == Application::OperationModeWaylandOnly ||
+           kwinApp()->operationMode() == Application::OperationModeXwayland
         //Wayland
         ? desktops().isEmpty()
         //X11
@@ -791,7 +792,11 @@ inline bool Toplevel::isOnAllActivities() const
 
 inline bool Toplevel::isOnDesktop(int d) const
 {
-    return (surface() ? desktops().contains(VirtualDesktopManager::self()->desktopForX11Id(d)) : desktop() == d) || isOnAllDesktops();
+    return (kwinApp()->operationMode() == Application::OperationModeWaylandOnly ||
+            kwinApp()->operationMode() == Application::OperationModeXwayland
+            ? desktops().contains(VirtualDesktopManager::self()->desktopForX11Id(d))
+            : desktop() == d
+           ) || isOnAllDesktops();
 }
 
 inline bool Toplevel::isOnActivity(const QString &activity) const
