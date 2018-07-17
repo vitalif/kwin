@@ -491,9 +491,8 @@ void AbstractClient::setDesktop(int desktop)
         return;
     }
 
-    int was_desk = m_desktop;
+    int was_desk = AbstractClient::desktop();
     const bool wasOnCurrentDesktop = isOnCurrentDesktop();
-    m_desktop = desktop;
 
     //can't check windowManagementInterface yet as it gets created only on first show
     //on x11 only one desktop at a time
@@ -503,10 +502,9 @@ void AbstractClient::setDesktop(int desktop)
     if (desktop == NET::OnAllDesktops) {
         m_desktops.clear();
     } else {
-        //if would become on all desktops, clear the list, as empty== on all desktops
-        if (m_desktops.count() == VirtualDesktopManager::self()->count() - 1) {
+        //if would become on all desktops, clear the list, as empty == on all desktops
+        if ((uint)m_desktops.count() == VirtualDesktopManager::self()->count() - 1) {
             m_desktops.clear();
-            m_desktop = NET::OnAllDesktops;
         } else {
             m_desktops << virtualDesktop;
         }
@@ -520,10 +518,10 @@ void AbstractClient::setDesktop(int desktop)
     }
 
     if (info) {
-        info->setDesktop(m_desktop);
+        info->setDesktop(virtualDesktop->x11DesktopNumber());
     }
 
-    if ((was_desk == NET::OnAllDesktops) != (m_desktop == NET::OnAllDesktops)) {
+    if ((was_desk == NET::OnAllDesktops) != (desktop == NET::OnAllDesktops)) {
         // onAllDesktops changed
         workspace()->updateOnAllDesktopsOfTransients(this);
     }
@@ -532,17 +530,17 @@ void AbstractClient::setDesktop(int desktop)
     for (auto it = transients_stacking_order.constBegin();
             it != transients_stacking_order.constEnd();
             ++it)
-        (*it)->setDesktop(m_desktop);
+        (*it)->setDesktop(desktop);
 
     if (isModal())  // if a modal dialog is moved, move the mainwindow with it as otherwise
         // the (just moved) modal dialog will confusingly return to the mainwindow with
         // the next desktop change
     {
         foreach (AbstractClient * c2, mainClients())
-        c2->setDesktop(m_desktop);
+        c2->setDesktop(desktop);
     }
 
-    doSetDesktop(m_desktop, was_desk);
+    doSetDesktop(desktop, was_desk);
 
     FocusChain::self()->update(this, FocusChain::MakeFirst);
     updateWindowRules(Rules::Desktop);

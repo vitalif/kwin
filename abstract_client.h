@@ -421,7 +421,7 @@ public:
     void setDesktop(int);
     virtual void unSetDesktop(int desktop);
     int desktop() const override {
-        return m_desktop;
+        return m_desktops.isEmpty() ? (int)NET::OnAllDesktops : m_desktops.last()->x11DesktopNumber();
     }
     virtual QList<VirtualDesktop *> desktops() const {
         return m_desktops;
@@ -1097,7 +1097,6 @@ private:
     bool m_demandsAttention = false;
     bool m_minimized = false;
     QTimer *m_autoRaiseTimer = nullptr;
-    int m_desktop = 0; // 0 means not on any desktop yet
     QList <VirtualDesktop *> m_desktops;
 
     QString m_colorScheme;
