@@ -451,7 +451,13 @@ void WaylandServer::initWorkspace()
 
     connect(VirtualDesktopManager::self(), &VirtualDesktopManager::currentChanged, this,
         [this]() {
-            m_virtualDesktopManagement->setActiveDesktop(VirtualDesktopManager::self()->currentDesktop()->id());
+            for (auto *deskInt : m_virtualDesktopManagement->desktops()) {
+                if (deskInt->id() == VirtualDesktopManager::self()->currentDesktop()->id()) {
+                    deskInt->setActive(true);
+                } else {
+                    deskInt->setActive(false);
+                }
+            }
         }
     );
 
