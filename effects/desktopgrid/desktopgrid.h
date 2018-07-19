@@ -151,6 +151,7 @@ private:
     QTimeLine timeline;
     int paintingDesktop;
     int highlightedDesktop;
+    int sourceDesktop;
     int m_originalMovingDesktop;
     bool keyboardGrab;
     bool wasWindowMove, wasDesktopMove, isValidMove;

@@ -760,6 +760,13 @@ bool EffectsHandler::isOpenGLCompositing() const
     return compositing_type & OpenGLCompositing;
 }
 
+void EffectsHandler::removeWindowFromDesktop(KWin::EffectWindow* w, int desktop)
+{
+    if (w->parent() && !w->isDesktop() && !w->isDock()) {
+        QMetaObject::invokeMethod(w->parent(), "unSetDesktop", Q_ARG(int, desktop));
+    }
+}
+
 EffectsHandler* effects = nullptr;
 
 

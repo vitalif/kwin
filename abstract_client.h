@@ -419,7 +419,7 @@ public:
     virtual bool performMouseCommand(Options::MouseCommand, const QPoint &globalPos);
     void setOnAllDesktops(bool set);
     void setDesktop(int);
-    virtual void unSetDesktop(int desktop);
+    Q_INVOKABLE virtual void unSetDesktop(int desktop);
     int desktop() const override {
         return m_desktops.isEmpty() ? (int)NET::OnAllDesktops : m_desktops.last()->x11DesktopNumber();
     }

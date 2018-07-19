@@ -934,6 +934,10 @@ public:
     virtual KWin::EffectWindow* activeWindow() const = 0 ;
     Q_SCRIPTABLE virtual void moveWindow(KWin::EffectWindow* w, const QPoint& pos, bool snap = false, double snapAdjust = 1.0) = 0;
     Q_SCRIPTABLE virtual void windowToDesktop(KWin::EffectWindow* w, int desktop) = 0;
+    /**
+     * Removes a window from a desktop on wayland, no-op on X11
+     */
+    Q_SCRIPTABLE void removeWindowFromDesktop(KWin::EffectWindow* w, int desktop);
     Q_SCRIPTABLE virtual void windowToScreen(KWin::EffectWindow* w, int screen) = 0;
     virtual void setShowingDesktop(bool showing) = 0;
 
