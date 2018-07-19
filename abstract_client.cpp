@@ -518,7 +518,7 @@ void AbstractClient::setDesktop(int desktop)
     }
 
     if (info) {
-        info->setDesktop(virtualDesktop->x11DesktopNumber());
+        info->setDesktop(desktop);
     }
 
     if ((was_desk == NET::OnAllDesktops) != (desktop == NET::OnAllDesktops)) {
