@@ -54,6 +54,7 @@ DesktopGridEffect::DesktopGridEffect()
     , timeline()
     , keyboardGrab(false)
     , wasWindowMove(false)
+    , wasWindowCopy(false)
     , wasDesktopMove(false)
     , isValidMove(false)
     , windowMove(NULL)
@@ -299,7 +300,9 @@ void DesktopGridEffect::prePaintWindow(EffectWindow* w, WindowPrePaintData& data
 void DesktopGridEffect::paintWindow(EffectWindow* w, int mask, QRegion region, WindowPaintData& data)
 {
     if (timeline.currentValue() != 0 || (isUsingPresentWindows() && isMotionManagerMovingWindows())) {
-        if (isUsingPresentWindows() && w == windowMove && wasWindowMove) {
+        if (isUsingPresentWindows() && w == windowMove && wasWindowMove &&
+            ((!wasWindowCopy && sourceDesktop == paintingDesktop) ||
+             (sourceDesktop != highlightedDesktop && highlightedDesktop == paintingDesktop))) {
             return; // will be painted on top of all other windows
         }
         foreach (DesktopButtonsView *view, m_desktopButtonsViews) {
@@ -515,13 +518,15 @@ void DesktopGridEffect::windowInputMouseEvent(QEvent* e)
             }
             if (wasWindowMove) {
                 if (!effects->waylandDisplay() || (me->modifiers() & Qt::ShiftModifier)) {
+                    wasWindowCopy = false;
                     effects->defineCursor(Qt::ClosedHandCursor);
                 } else {
+                    wasWindowCopy = true;
                     effects->defineCursor(Qt::DragCopyCursor);
                 }
                 if (d != highlightedDesktop) {
                     effects->windowToDesktop(windowMove, d);   // Not true all desktop move
-                    if (highlightedDesktop != sourceDesktop || (me->modifiers() & Qt::ShiftModifier)) {
+                    if (highlightedDesktop != sourceDesktop || !wasWindowCopy) {
                         effects->removeWindowFromDesktop(windowMove, highlightedDesktop);
                     }
                     const int screen = effects->screenNumber(me->pos());
@@ -659,6 +664,7 @@ void DesktopGridEffect::windowInputMouseEvent(QEvent* e)
             windowMove = NULL;
         }
         wasWindowMove = false;
+        wasWindowCopy = false;
         wasDesktopMove = false;
     }
 }

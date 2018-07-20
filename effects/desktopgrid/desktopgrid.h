@@ -154,7 +154,7 @@ private:
     int sourceDesktop;
     int m_originalMovingDesktop;
     bool keyboardGrab;
-    bool wasWindowMove, wasDesktopMove, isValidMove;
+    bool wasWindowMove, wasWindowCopy, wasDesktopMove, isValidMove;
     EffectWindow* windowMove;
     QPoint windowMoveDiff;
     QPoint dragStartPos;
