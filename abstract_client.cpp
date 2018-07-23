@@ -503,7 +503,7 @@ void AbstractClient::setDesktop(int desktop)
         m_desktops.clear();
     } else {
         //if would become on all desktops, clear the list, as empty == on all desktops
-        if ((uint)m_desktops.count() == VirtualDesktopManager::self()->count() - 1) {
+        if (static_cast<uint>(m_desktops.count()) == VirtualDesktopManager::self()->count() - 1) {
             m_desktops.clear();
         } else {
             m_desktops << virtualDesktop;
@@ -584,12 +584,16 @@ void AbstractClient::setOnAllDesktops(bool b)
 
 QList<int> AbstractClient::x11DesktopIds() const
 {
-    QList<int> desks;
-
-    for (auto vd : desktops()) {
-        desks << vd->x11DesktopNumber();
-    }
-    return desks;
+    const auto desks = desktops();
+    QList<int> x11Ids;
+    x11Ids.reserve(desks.count());
+    std::transform(desks.constBegin(), desks.constEnd(),
+        std::back_inserter(x11Ids),
+        [] (const VirtualDesktop *vd) {
+            return vd->x11DesktopNumber();
+        }
+    );
+    return x11Ids;
 }
 
 bool AbstractClient::isShadeable() const

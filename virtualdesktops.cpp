@@ -69,8 +69,7 @@ void VirtualDesktop::setName(const QString &name)
 VirtualDesktopGrid::VirtualDesktopGrid()
     : m_size(1, 2) // Default to tow rows
     , m_grid(QVector<QVector<VirtualDesktop*>>{QVector<VirtualDesktop*>{}, QVector<VirtualDesktop*>{}})
-{
-    
+{    
 }
 
 VirtualDesktopGrid::~VirtualDesktopGrid() = default;
@@ -329,14 +328,19 @@ VirtualDesktop *VirtualDesktopManager::desktopForX11Id(uint id) const
 
 VirtualDesktop *VirtualDesktopManager::desktopForId(const QByteArray &id) const
 {
-    auto desk = std::find_if( m_desktops.constBegin(),
-                         m_desktops.constEnd(),
-                         [id]( const VirtualDesktop *desk ){ return desk->id() == id; } );
+    auto desk = std::find_if(
+        m_desktops.constBegin(),
+        m_desktops.constEnd(),
+        [id] (const VirtualDesktop *desk ) {
+            return desk->id() == id;
+        }
+    );
+
     if (desk != m_desktops.constEnd()) {
         return *desk;
-    } else {
-        return nullptr;
     }
+
+    return nullptr;
 }
 
 VirtualDesktop *VirtualDesktopManager::createVirtualDesktop(uint number, const QString &name)
@@ -347,7 +351,7 @@ VirtualDesktop *VirtualDesktopManager::createVirtualDesktop(uint number, const Q
     }
 
     const uint actualNumber = qBound<uint>(0, number, VirtualDesktopManager::maximum());
-    auto vd = new VirtualDesktop(this);
+    auto *vd = new VirtualDesktop(this);
     vd->setX11DesktopNumber(actualNumber);
     //TODO: depend on Qt 5.11, use toString(QUuid::WithoutBraces)
     vd->setId(QUuid::createUuid().toString().toUtf8());

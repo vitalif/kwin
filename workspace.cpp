@@ -222,7 +222,8 @@ void Workspace::init()
     connect(vds, &VirtualDesktopManager::desktopRemoved, this,
         [this](KWin::VirtualDesktop *desktop) {
             //Wayland
-            if (waylandServer()) {
+            if (kwinApp()->operationMode() == Application::OperationModeWaylandOnly ||
+                kwinApp()->operationMode() == Application::OperationModeXwayland) {
                 for (auto it = m_allClients.constBegin(); it != m_allClients.constEnd(); ++it) {
                     if (!(*it)->isOnAllDesktops() && (*it)->desktops().count() == 1) {
                         const VirtualDesktop *otherDesktop = (*it)->desktops().first();

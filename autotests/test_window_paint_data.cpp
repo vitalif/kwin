@@ -73,7 +73,7 @@ public:
     virtual void setData(int role, const QVariant &data);
     virtual void referencePreviousWindowPixmap() {}
     virtual void unreferencePreviousWindowPixmap() {}
-    QList<int> desktops() const { return QList<int>();}
+    QList<int> desktops() const { return {};}
 };
 
 MockEffectWindow::MockEffectWindow(QObject *parent)

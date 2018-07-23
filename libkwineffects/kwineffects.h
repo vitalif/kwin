@@ -1994,7 +1994,22 @@ public:
     bool isOnDesktop(int d) const;
     bool isOnCurrentDesktop() const;
     bool isOnAllDesktops() const;
-    int desktop() const; // prefer isOnXXX()
+    /**
+     * The desktop this window is in. This mkaes sense only on X11
+     * where desktops are mutually exclusive, on Wayland it's the last
+     * desktop the window has been added to.
+     * use desktops() instead.
+     * @see desktops()
+     * @deprecated
+     */
+#ifndef KWIN_NO_DEPRECATED
+    int KWIN_DEPRECATED desktop() const; // prefer isOnXXX()
+#endif
+    /**
+     * All the desktops by number that the window is in. On X11 this list will always have
+     * a length of 1, on Wayland can be any subset.
+     * If the list is empty it means the window is on all desktops
+     */
     QList<int> desktops() const;
 
     int x() const;

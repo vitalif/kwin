@@ -801,7 +801,9 @@ WINDOW_HELPER(int, screen, "screen")
 WINDOW_HELPER(QRect, geometry, "geometry")
 WINDOW_HELPER(QRect, expandedGeometry, "visibleRect")
 WINDOW_HELPER(QRect, rect, "rect")
+#ifndef KWIN_NO_DEPRECATED
 WINDOW_HELPER(int, desktop, "desktop")
+#endif
 WINDOW_HELPER(bool, isDesktop, "desktopWindow")
 WINDOW_HELPER(bool, isDock, "dock")
 WINDOW_HELPER(bool, isToolbar, "toolbar")

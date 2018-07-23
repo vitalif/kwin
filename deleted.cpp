@@ -143,7 +143,7 @@ QStringList Deleted::activities() const
 
 QList<VirtualDesktop *> Deleted::desktops() const
 {
-    return QList<VirtualDesktop *>();
+    return {};
 }
 
 QPoint Deleted::clientPos() const
