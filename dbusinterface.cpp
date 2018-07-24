@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // own
 #include "dbusinterface.h"
 #include "compositingadaptor.h"
+#include "virtualdesktopmanageradaptor.h"
 
 // kwin
 #include "abstract_client.h"
@@ -41,6 +42,55 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Qt
 #include <QOpenGLContext>
 #include <QDBusServiceWatcher>
+
+
+// Marshall the DBusDesktopDataStruct data into a D-BUS argument
+const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataStruct &desk)
+{
+    argument.beginStructure();
+    argument << desk.x11DesktopNumber;
+    argument << desk.id;
+    argument << desk.name;
+    argument.endStructure();
+    return argument;
+}
+// Retrieve
+const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataStruct &desk)
+{
+    argument.beginStructure();
+    argument >> desk.x11DesktopNumber;
+    argument >> desk.id;
+    argument >> desk.name;
+    argument.endStructure();
+    return argument;
+}
+
+const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataVector &deskVector)
+{
+    argument.beginArray(qMetaTypeId<KWin::DBusDesktopDataStruct>());
+    for (int i = 0; i < deskVector.size(); ++i) {
+        argument << deskVector[i];
+    }
+    argument.endArray();
+    return argument;
+}
+
+const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataVector &deskVector)
+{
+    argument.beginArray();
+    deskVector.clear();
+
+    while (!argument.atEnd()) {
+        KWin::DBusDesktopDataStruct element;
+        argument >> element;
+        deskVector.append(element);
+    }
+
+    argument.endArray();
+
+    return argument;
+}
+
 
 namespace KWin
 {
@@ -314,5 +364,122 @@ QStringList CompositorDBusInterface::supportedOpenGLPlatformInterfaces() const
     interfaces << QStringLiteral("egl");
     return interfaces;
 }
+
+
+
+
+VirtualDesktopManagerDBusInterface::VirtualDesktopManagerDBusInterface(VirtualDesktopManager *parent)
+    : QObject(parent)
+    , m_manager(parent)
+{
+    qDBusRegisterMetaType<KWin::DBusDesktopDataStruct>();
+    qDBusRegisterMetaType<KWin::DBusDesktopDataVector>();
+
+    new VirtualDesktopManagerAdaptor(this);
+    QDBusConnection::sessionBus().registerObject(QStringLiteral("/VirtualDesktopManager"),
+        QStringLiteral("org.kde.KWin.VirtualDesktopManager"),
+        this
+    );
+    connect(m_manager, &VirtualDesktopManager::currentChanged, this,
+        [this](uint previousDesktop, uint newDesktop) {
+            Q_UNUSED(previousDesktop);
+            emit currentChanged(newDesktop);
+        }
+    );
+}
+
+void VirtualDesktopManagerDBusInterface::setCount(uint count)
+{
+    if (m_manager->count() == count) {
+        return;
+    }
+
+    m_manager->setCount(count);
+    emit desktopsChanged(desktops());
+}
+
+uint VirtualDesktopManagerDBusInterface::count() const
+{
+    return m_manager->count();
+}
+
+void VirtualDesktopManagerDBusInterface::setRows(uint rows)
+{
+  //  if (m_manager->rows() == rows) {
+  //      return;
+   // }
+    //TODO: this should be more granular and perhaps the prientation should be in the dbus/wayland protocol too?
+    //FIXME: NOOP
+//    m_manager->grid().update(QSize(m_manager->grid().width(), rows), Qt::Horizontal, m_manager->desktops());
+    emit rowsChanged(rows);
+}
+
+uint VirtualDesktopManagerDBusInterface::rows() const
+{
+    return m_manager->grid().height();
+}
+
+void VirtualDesktopManagerDBusInterface::setCurrent(uint current)
+{
+    if (m_manager->current() == current) {
+        return;
+    }
+
+    m_manager->setCurrent(current);
+    emit currentChanged(current);
+}
+
+uint VirtualDesktopManagerDBusInterface::current() const
+{
+    return m_manager->current();
+}
+
+void VirtualDesktopManagerDBusInterface::setNavigationWrappingAround(bool wraps)
+{
+    if (m_manager->isNavigationWrappingAround() == wraps) {
+        return;
+    }
+
+    m_manager->setNavigationWrappingAround(wraps);
+    emit navigationWrappingAroundChanged(wraps);
+}
+
+bool VirtualDesktopManagerDBusInterface::isNavigationWrappingAround() const
+{
+    return m_manager->isNavigationWrappingAround();
+}
+
+DBusDesktopDataVector VirtualDesktopManagerDBusInterface::desktops() const
+{
+    const auto desks = m_manager->desktops();
+    DBusDesktopDataVector desktopVect;
+    desktopVect.reserve(m_manager->count());
+
+    std::transform(desks.constBegin(), desks.constEnd(),
+        std::back_inserter(desktopVect),
+        [] (const VirtualDesktop *vd) {
+            return DBusDesktopDataStruct{.x11DesktopNumber = vd->x11DesktopNumber(), .id = vd->id(), .name = vd->name()};
+        }
+    );
+
+    return desktopVect;
+}
+
+void VirtualDesktopManagerDBusInterface::setDesktopName(uint number, const QString &name)
+{
+    VirtualDesktop *vd = m_manager->desktopForX11Id(number);
+    if (!vd) {
+        return;
+    }
+    if (vd->name() == name) {
+        return;
+    }
+
+    DBusDesktopDataStruct data{.x11DesktopNumber = vd->x11DesktopNumber(), .id = vd->id(), .name = name};
+    vd->setName(name);
+
+    emit desktopDataChanged(data);
+    emit desktopsChanged(desktops());
+}    
 
 } // namespace

@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPoint>
 #include <QPointer>
 #include <QSize>
+
 // KDE includes
 #include <KConfig>
 #include <KSharedConfig>
@@ -465,74 +466,6 @@ private:
     bool m_isLoading = false;
 
     KWIN_SINGLETON_VARIABLE(VirtualDesktopManager, s_manager)
-};
-
-struct VirtualDesktopManagerDBusDesktopDataStruct {
-    uint x11DesktopNumber;
-    QString id;
-    QString name;
-};
-typedef QVector<VirtualDesktopManagerDBusDesktopDataStruct> VirtualDesktopManagerDBusDesktopDataVector;
-
-class VirtualDesktopManagerDBus : public QObject
-{
-    Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.kde.KWin.VirtualDesktopManager")
-
-    /**
-     * The number of virtual desktops currently available.
-     * The ids of the virtual desktops are in the range [1, VirtualDesktopManager::maximum()].
-     **/
-    Q_PROPERTY(uint count READ count WRITE setCount NOTIFY countChanged)
-    /**
-     * The number of rows the virtual desktops will be laid out in
-     **/
-    Q_PROPERTY(uint rows READ rows WRITE setRows NOTIFY rowsChanged)
-    /**
-     * The id of the virtual desktop which is currently in use.
-     **/
-    Q_PROPERTY(uint current READ current WRITE setCurrent NOTIFY currentChanged)
-    /**
-     * Whether navigation in the desktop layout wraps around at the borders.
-     **/
-    Q_PROPERTY(bool navigationWrappingAround READ isNavigationWrappingAround WRITE setNavigationWrappingAround NOTIFY navigationWrappingAroundChanged)
-
-    /**
-     * list of key/value pairs which every one of them is representing a desktop
-     */
-   // Q_PROPERTY(VirtualDesktopManagerDBusDesktopDataVector desktops READ desktops, NOTIFY desktopsChanged);
-
-public:
-    VirtualDesktopManagerDBus(VirtualDesktopManager *parent);
-    ~VirtualDesktopManagerDBus() = default;
-
-    void setCount(uint count);
-    uint count() const;
-
-    void setRows(uint rows);
-    uint rows() const;
-
-    void setCurrent(uint current);
-    uint current() const;
-
-    void setNavigationWrappingAround(bool wraps);
-    bool isNavigationWrappingAround() const;
-
-    VirtualDesktopManagerDBusDesktopDataVector desktops() const;
-
-Q_SIGNALS:
-    void countChanged(uint count);
-    void rowsChanged(uint rows);
-    void currentChanged(uint current);
-    void navigationWrappingAroundChanged(bool wraps);
-    void desktopsChanged(VirtualDesktopManagerDBusDesktopDataVector);
-    void desktopDataChanged(VirtualDesktopManagerDBusDesktopDataStruct);
-
-public Q_SLOTS:
-    void setDesktopName(uint number, const QString &name);
-
-private:
-    VirtualDesktopManager *m_manager;
 };
 
 /**

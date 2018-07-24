@@ -165,6 +165,8 @@ Workspace::Workspace(const QString &sessionKey)
     // and prior to TabBox, due to TabBox connecting to signals
     // actual initialization happens in init()
     VirtualDesktopManager::create(this);
+    //dbus interface
+    new VirtualDesktopManagerDBusInterface(VirtualDesktopManager::self());
 
 #ifdef KWIN_BUILD_TABBOX
     // need to create the tabbox before compositing scene is setup

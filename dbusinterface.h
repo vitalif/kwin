@@ -28,6 +28,7 @@ namespace KWin
 {
 
 class Compositor;
+class VirtualDesktopManager;
 
 /**
  * @brief This class is a wrapper for the org.kde.KWin D-Bus interface.
@@ -169,6 +170,85 @@ private:
     Compositor *m_compositor;
 };
 
+
+struct DBusDesktopDataStruct {
+    uint x11DesktopNumber;
+    QString id;
+    QString name;
+};
+typedef QVector<DBusDesktopDataStruct> DBusDesktopDataVector;
+
+class VirtualDesktopManagerDBusInterface : public QObject
+{
+    Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.kde.KWin.VirtualDesktopManager")
+
+    /**
+     * The number of virtual desktops currently available.
+     * The ids of the virtual desktops are in the range [1, VirtualDesktopManager::maximum()].
+     **/
+    Q_PROPERTY(uint count READ count WRITE setCount NOTIFY countChanged)
+    /**
+     * The number of rows the virtual desktops will be laid out in
+     **/
+    Q_PROPERTY(uint rows READ rows WRITE setRows NOTIFY rowsChanged)
+    /**
+     * The id of the virtual desktop which is currently in use.
+     **/
+    Q_PROPERTY(uint current READ current WRITE setCurrent NOTIFY currentChanged)
+    /**
+     * Whether navigation in the desktop layout wraps around at the borders.
+     **/
+    Q_PROPERTY(bool navigationWrappingAround READ isNavigationWrappingAround WRITE setNavigationWrappingAround NOTIFY navigationWrappingAroundChanged)
+
+    /**
+     * list of key/value pairs which every one of them is representing a desktop
+     */
+    Q_PROPERTY(KWin::DBusDesktopDataVector desktops READ desktops NOTIFY desktopsChanged);
+
+public:
+    VirtualDesktopManagerDBusInterface(VirtualDesktopManager *parent);
+    ~VirtualDesktopManagerDBusInterface() = default;
+
+    void setCount(uint count);
+    uint count() const;
+
+    void setRows(uint rows);
+    uint rows() const;
+
+    void setCurrent(uint current);
+    uint current() const;
+
+    void setNavigationWrappingAround(bool wraps);
+    bool isNavigationWrappingAround() const;
+
+    KWin::DBusDesktopDataVector desktops() const;
+
+Q_SIGNALS:
+    void countChanged(uint count);
+    void rowsChanged(uint rows);
+    void currentChanged(uint current);
+    void navigationWrappingAroundChanged(bool wraps);
+    void desktopsChanged(KWin::DBusDesktopDataVector);
+    void desktopDataChanged(KWin::DBusDesktopDataStruct);
+
+public Q_SLOTS:
+    void setDesktopName(uint number, const QString &name);
+
+private:
+    VirtualDesktopManager *m_manager;
+};
+
 } // namespace
+
+const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataStruct &desk);
+const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataStruct &desk);
+
+Q_DECLARE_METATYPE(KWin::DBusDesktopDataStruct)
+
+const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataVector &deskVector);
+const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataVector &deskVector);
+
+Q_DECLARE_METATYPE(KWin::DBusDesktopDataVector)
 
 #endif // KWIN_DBUS_INTERFACE_H
