@@ -2,6 +2,7 @@
 <node>
   <interface name="org.kde.KWin.VirtualDesktopManager">
     <property name="count" type="u" access="readwrite"/>
+    <property name="current" type="u" access="readwrite"/>
     <property name="rows" type="u" access="readwrite"/>
     <property name="navigationWrappingAround" type="b" access="readwrite"/>
     <property name="desktops" type="a(iss)" access="read">

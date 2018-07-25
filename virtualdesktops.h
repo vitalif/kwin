@@ -175,6 +175,12 @@ public:
      */
     uint count() const;
     /**
+     * @returns the number of rows the layout has.
+     * @see setRows
+     * @see rowsChanged
+     */
+    uint rows() const;
+    /**
      * @returns The ID of the current desktop.
      * @see setCurrent
      * @see currentChanged
@@ -345,6 +351,10 @@ public Q_SLOTS:
      **/
     bool setCurrent(VirtualDesktop *current);
     /**
+     * Updates the layout to a new number of rows. The number of columns will be calculated accordingly
+     */
+    void setRows(uint rows);
+    /**
      * Called from within setCount() to ensure the desktop layout is still valid.
      */
     void updateLayout();
@@ -370,6 +380,12 @@ Q_SIGNALS:
      * @param newCount The new current number of desktops
      **/
     void countChanged(uint previousCount, uint newCount);
+
+    /**
+     * Signal when the number of rows in the layout changes
+     * @param new number of rows
+     */
+    void rowsChanged(uint rows);
 
     /**
      * A new desktop has been created

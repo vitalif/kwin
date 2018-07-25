@@ -579,6 +579,32 @@ void VirtualDesktopManager::setCount(uint count)
     emit countChanged(oldCount, m_desktops.count());
 }
 
+
+uint VirtualDesktopManager::rows() const
+{
+    return grid().height();
+}
+
+void VirtualDesktopManager::setRows(uint rows)
+{
+    if (static_cast<uint>(grid().height()) == rows || rows == 0 || rows > count()) {
+        return;
+    }
+
+    int columns = count() / rows;
+    if (count() % rows > 0) {
+        columns++;
+    }
+    if (m_rootInfo) {
+        m_rootInfo->setDesktopLayout(NET::OrientationHorizontal, columns, rows, NET::DesktopLayoutCornerTopLeft);
+        m_rootInfo->activate();
+    }
+
+    updateLayout();
+
+    emit rowsChanged(rows);
+}
+
 void VirtualDesktopManager::updateRootInfo()
 {
     if (!m_rootInfo) {

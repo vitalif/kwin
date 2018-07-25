@@ -405,18 +405,19 @@ uint VirtualDesktopManagerDBusInterface::count() const
 
 void VirtualDesktopManagerDBusInterface::setRows(uint rows)
 {
-    if (m_manager->grid().height() == rows) {
+    if (static_cast<uint>(m_manager->grid().height()) == rows) {
         return;
     }
-    //TODO: this should be more granular and perhaps the prientation should be in the dbus/wayland protocol too?
-    //FIXME: NOOP
- //   m_manager->grid().update(QSize(m_manager->grid().width(), rows), Qt::Horizontal, m_manager->desktops());
+
+    m_manager->setRows(rows);
+    m_manager->save();
+
     emit rowsChanged(rows);
 }
 
 uint VirtualDesktopManagerDBusInterface::rows() const
 {
-    return m_manager->grid().height();
+    return m_manager->rows();
 }
 
 void VirtualDesktopManagerDBusInterface::setCurrent(uint current)
