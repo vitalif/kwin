@@ -36,6 +36,14 @@ class KLocalizedString;
 class NETRootInfo;
 class QAction;
 
+namespace KWayland
+{
+namespace Server
+{
+class PlasmaVirtualDesktopManagementInterface;
+}
+}
+
 namespace KWin {
 
 class KWIN_EXPORT VirtualDesktop : public QObject
@@ -149,9 +157,13 @@ class KWIN_EXPORT VirtualDesktopManager : public QObject
 public:
     virtual ~VirtualDesktopManager();
     /**
-     * @internal
+     * @internal, for X11 case
      **/
     void setRootInfo(NETRootInfo *info);
+    /**
+     * @internal, for Wayland case
+     **/
+    void setVirtualDesktopManagement(KWayland::Server::PlasmaVirtualDesktopManagementInterface *management);
     /**
      * @internal
      **/
@@ -462,6 +474,7 @@ private:
     VirtualDesktopGrid m_grid;
     // TODO: QPointer
     NETRootInfo *m_rootInfo;
+    KWayland::Server::PlasmaVirtualDesktopManagementInterface *m_virtualDesktopManagement = nullptr;
     KSharedConfig::Ptr m_config;
     bool m_isLoading = false;
 

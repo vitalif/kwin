@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KGlobalAccel>
 #include <KLocalizedString>
 #include <NETWM>
+
+#include <KWayland/Server/plasmavirtualdesktop_interface.h>
 // Qt
 #include <QAction>
 #include <QUuid>
@@ -43,6 +45,81 @@ VirtualDesktop::VirtualDesktop(QObject *parent)
 VirtualDesktop::~VirtualDesktop()
 {
     emit aboutToBeDestroyed();
+}
+
+void VirtualDesktopManager::setVirtualDesktopManagement(KWayland::Server::PlasmaVirtualDesktopManagementInterface *management)
+{
+    using namespace KWayland::Server;
+    Q_ASSERT(!m_virtualDesktopManagement);
+    m_virtualDesktopManagement = management;
+
+    connect(this, &VirtualDesktopManager::desktopCreated, this,
+        [this](VirtualDesktop *desktop) {
+            using namespace KWayland::Server;
+            PlasmaVirtualDesktopInterface *pvd = m_virtualDesktopManagement->createDesktop(desktop->id(), desktop->x11DesktopNumber() - 1);
+            pvd->setName(desktop->name());
+            pvd->sendDone();
+            connect(desktop, &VirtualDesktop::nameChanged, this,
+                [this, desktop, pvd]() {
+                    pvd->setName(desktop->name());
+                }
+            );
+        }
+    );
+
+    //handle removed: from VirtualDesktopManager to the wayland interface
+    connect(this, &VirtualDesktopManager::desktopRemoved, this,
+        [this](VirtualDesktop *desktop) {
+            m_virtualDesktopManagement->removeDesktop(desktop->id());
+        }
+    );
+
+    //create a new desktop when the client asks to
+    connect (m_virtualDesktopManagement, &PlasmaVirtualDesktopManagementInterface::desktopCreateRequested, this,
+        [this](const QString &name, quint32 position) {
+            VirtualDesktop *vd = createVirtualDesktop(position);
+            if (vd) {
+                vd->setName(name);
+            }
+        }
+    );
+
+    //remove when the client asks to
+    connect (m_virtualDesktopManagement, &PlasmaVirtualDesktopManagementInterface::desktopRemoveRequested, this,
+        [this](const QString &id) {
+            //here there can be some nice kauthorized check?
+            //remove only from VirtualDesktopManager, the other connections will remove it from m_virtualDesktopManagement as well
+            removeVirtualDesktop(id.toUtf8());
+        }
+    );
+
+    for (quint32 i = 1; i <= count(); ++i) {
+        VirtualDesktop *internalDesktop = desktopForX11Id(i);
+        PlasmaVirtualDesktopInterface *desktop = m_virtualDesktopManagement->createDesktop(internalDesktop->id());
+
+        desktop->setName(desktop->name());
+        desktop->sendDone();
+
+        connect(desktop, &PlasmaVirtualDesktopInterface::activateRequested, this,
+            [this, desktop] () {
+                setCurrent(desktopForId(desktop->id().toUtf8()));
+            }
+        );
+    }
+    //Now we are sure all ids are there
+    save();
+
+    connect(this, &VirtualDesktopManager::currentChanged, this,
+        [this]() {
+            for (auto *deskInt : m_virtualDesktopManagement->desktops()) {
+                if (deskInt->id() == currentDesktop()->id()) {
+                    deskInt->setActive(true);
+                } else {
+                    deskInt->setActive(false);
+                }
+            }
+        }
+    );
 }
 
 void VirtualDesktop::setId(const QByteArray &id)
