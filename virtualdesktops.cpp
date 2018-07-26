@@ -130,8 +130,16 @@ void VirtualDesktop::setId(const QByteArray &id)
 
 void VirtualDesktop::setX11DesktopNumber(uint number)
 {
-    Q_ASSERT(m_x11DesktopNumber == 0);
+    //x11DesktopNumber can be changed now
+    if (static_cast<uint>(m_x11DesktopNumber) == number) {
+        return;
+    }
+
     m_x11DesktopNumber = number;
+
+    if (m_x11DesktopNumber != 0) {
+        emit x11DesktopNumberChanged();
+    }
 }
 
 void VirtualDesktop::setName(const QString &name)
@@ -455,6 +463,7 @@ VirtualDesktop *VirtualDesktopManager::createVirtualDesktop(uint number, const Q
     m_desktops.insert(actualNumber - 1, vd);
     save();
 
+    updateRootInfo();
     emit desktopCreated(vd);
     emit countChanged(m_desktops.count()-1, m_desktops.count());
     return vd;
@@ -488,7 +497,9 @@ void VirtualDesktopManager::removeVirtualDesktop(const QByteArray &id)
         emit currentChanged(oldCurrent, newCurrent);
     }
 
+    updateRootInfo();
     emit desktopRemoved(desktop);
+    emit countChanged(m_desktops.count()+1, m_desktops.count());
 
     desktop->deleteLater();
 }
@@ -602,7 +613,7 @@ void VirtualDesktopManager::setRows(uint rows)
 
     updateLayout();
 
-    emit rowsChanged(rows);
+    //rowsChanged will be emitted by setNETDesktopLayout called by updateLayout
 }
 
 void VirtualDesktopManager::updateRootInfo()
@@ -771,6 +782,7 @@ void VirtualDesktopManager::setNETDesktopLayout(Qt::Orientation orientation, uin
     m_grid.update(QSize(width, height), orientation, m_desktops);
     // TODO: why is there no call to m_rootInfo->setDesktopLayout?
     emit layoutChanged(width, height);
+    emit rowsChanged(height);
 }
 
 void VirtualDesktopManager::initShortcuts()

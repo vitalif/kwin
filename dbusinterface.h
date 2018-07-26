@@ -170,6 +170,7 @@ private:
     Compositor *m_compositor;
 };
 
+//TODO: disable all of this in case of kiosk?
 
 struct DBusDesktopDataStruct {
     uint x11DesktopNumber;
@@ -195,7 +196,7 @@ class VirtualDesktopManagerDBusInterface : public QObject
     /**
      * The id of the virtual desktop which is currently in use.
      **/
-    Q_PROPERTY(uint current READ current WRITE setCurrent NOTIFY currentChanged)
+    Q_PROPERTY(QString current READ current WRITE setCurrent NOTIFY currentChanged)
     /**
      * Whether navigation in the desktop layout wraps around at the borders.
      **/
@@ -216,8 +217,8 @@ public:
     void setRows(uint rows);
     uint rows() const;
 
-    void setCurrent(uint current);
-    uint current() const;
+    void setCurrent(const QString &id);
+    QString current() const;
 
     void setNavigationWrappingAround(bool wraps);
     bool isNavigationWrappingAround() const;
@@ -227,13 +228,21 @@ public:
 Q_SIGNALS:
     void countChanged(uint count);
     void rowsChanged(uint rows);
-    void currentChanged(uint current);
+    void currentChanged(const QString &id);
     void navigationWrappingAroundChanged(bool wraps);
     void desktopsChanged(KWin::DBusDesktopDataVector);
-    void desktopDataChanged(KWin::DBusDesktopDataStruct);
+    void desktopDataChanged(const QString &id, KWin::DBusDesktopDataStruct);
+    void desktopCreated(const QString &id, KWin::DBusDesktopDataStruct);
+    void desktopRemoved(const QString &id);
 
 public Q_SLOTS:
-    void setDesktopName(uint number, const QString &name);
+    /**
+     * Create a desktop with a new name at a given position
+     * note: the position starts from 1
+     */
+    void createDesktop(uint position, const QString &name);
+    void setDesktopName(const QString &id, const QString &name);
+    void removeDesktop(const QString &id);
 
 private:
     VirtualDesktopManager *m_manager;

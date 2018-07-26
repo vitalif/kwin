@@ -50,7 +50,7 @@ class KWIN_EXPORT VirtualDesktop : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QByteArray id READ id CONSTANT)
-    Q_PROPERTY(uint x11DesktopNumber READ x11DesktopNumber CONSTANT)
+    Q_PROPERTY(uint x11DesktopNumber READ x11DesktopNumber NOTIFY x11DesktopNumberChanged)
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 public:
     explicit VirtualDesktop(QObject *parent = nullptr);
@@ -73,6 +73,7 @@ public:
 
 Q_SIGNALS:
     void nameChanged();
+    void x11DesktopNumberChanged();
     /**
      * Emitted just before the desktop gets destroyed.
      **/
