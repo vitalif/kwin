@@ -355,7 +355,7 @@ class EffectWindowImpl : public EffectWindow
     Q_OBJECT
 public:
     explicit EffectWindowImpl(Toplevel *toplevel);
-    virtual ~EffectWindowImpl();
+    virtual ~EffectWindowImpl() override;
 
     void enablePainting(int reason) override;
     void disablePainting(int reason) override;
@@ -364,9 +364,75 @@ public:
     void refWindow() override;
     void unrefWindow() override;
 
+    bool isDeleted() const override;
+    bool isMinimized() const override;
+    double opacity() const override;
+    bool hasAlpha() const override;
+
+    QStringList activities() const override;
+    int desktop() const override;
+    int x() const override;
+    int y() const override;
+    int width() const override;
+    int height() const override;
+
+    QSize basicUnit() const override;
+    QRect geometry() const override;
+
+    QString caption() const override;
+
+    QRect expandedGeometry() const override;
+    QRegion shape() const override;
+    int screen() const override;
+    bool hasOwnShape() const override; // only for shadow effect, for now
+    QPoint pos() const override;
+    QSize size() const override;
+    QRect rect() const override;
+
+    bool isMovable() const override;
+    bool isMovableAcrossScreens() const override;
+    bool isUserMove() const override;
+    bool isUserResize() const override;
+    QRect iconGeometry() const override;
+
+    bool isDesktop() const override;
+    bool isDock() const override;
+    bool isToolbar() const override;
+    bool isMenu() const override;
+    bool isNormalWindow() const override;
+    bool isSpecialWindow() const override;
+    bool isDialog() const override;
+    bool isSplash() const override;
+    bool isUtility() const override;
+    bool isDropdownMenu() const override;
+    bool isPopupMenu() const override;
+    bool isTooltip() const override;
+    bool isNotification() const override;
+    bool isOnScreenDisplay() const override;
+    bool isComboBox() const override;
+    bool isDNDIcon() const override;
+    bool skipsCloseAnimation() const override;
+
+    bool acceptsFocus() const override;
+    bool keepAbove() const override;
+    bool keepBelow() const override;
+    bool isModal() const override;
+
+    KWayland::Server::SurfaceInterface *surface() const override;
+    bool isFullScreen() const override;
+    bool isUnresponsive() const override;
+
+    QRect contentsRect() const override;
+    bool decorationHasAlpha() const override;
+    QIcon icon() const override;
+    QString windowClass() const override;
+    NET::WindowType windowType() const override;
+    bool isSkipSwitcher() const override;
+    bool isCurrentTab() const override;
+    QString windowRole() const override;
+
     const EffectWindowGroup* group() const override;
 
-    QRegion shape() const override;
     QRect decorationInnerRect() const override;
     QByteArray readProperty(long atom, long type, int format) const override;
     void deleteProperty(long atom) const override;
@@ -389,8 +455,8 @@ public:
 
     void elevate(bool elevate);
 
-    void setData(int role, const QVariant &data);
-    QVariant data(int role) const;
+    void setData(int role, const QVariant &data) override;
+    QVariant data(int role) const override;
 
     void registerThumbnail(AbstractThumbnailItem *item);
     QHash<WindowThumbnailItem*, QWeakPointer<EffectWindowImpl> > const &thumbnails() const {
@@ -435,16 +501,16 @@ public:
     void render(QRegion region = infiniteRegion(), double opacity = 1.0, double frameOpacity = 1.0) override;
     Qt::Alignment alignment() const override;
     void setAlignment(Qt::Alignment alignment) override;
-    const QFont& font() const override;
+    const QFont font() const override;
     void setFont(const QFont& font) override;
-    const QRect& geometry() const override;
+    const QRect geometry() const override;
     void setGeometry(const QRect& geometry, bool force = false) override;
-    const QIcon& icon() const override;
+    const QIcon icon() const override;
     void setIcon(const QIcon& icon) override;
-    const QSize& iconSize() const override;
+    const QSize iconSize() const override;
     void setIconSize(const QSize& size) override;
     void setPosition(const QPoint& point) override;
-    const QString& text() const override;
+    const QString text() const override;
     void setText(const QString& text) override;
     EffectFrameStyle style() const override {
         return m_style;

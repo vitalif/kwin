@@ -1667,7 +1667,7 @@ const EffectWindowGroup* EffectWindowImpl::group() const
 {
     if (Client* c = dynamic_cast< Client* >(toplevel))
         return c->group()->effectGroup();
-    return NULL; // TODO
+    return nullptr; // TODO
 }
 
 void EffectWindowImpl::refWindow()
@@ -1682,6 +1682,100 @@ void EffectWindowImpl::unrefWindow()
     if (Deleted* d = dynamic_cast< Deleted* >(toplevel))
         return d->unrefWindow();   // delays deletion in case
     abort(); // TODO
+}
+
+#define WINDOW_HELPER( rettype, prototype, toplevelPrototype) \
+    rettype EffectWindowImpl::prototype ( ) const \
+    { \
+        return toplevel->toplevelPrototype(); \
+    }
+
+WINDOW_HELPER(double, opacity, opacity)
+WINDOW_HELPER(bool, hasAlpha, hasAlpha)
+WINDOW_HELPER(int, x, x)
+WINDOW_HELPER(int, y, y)
+WINDOW_HELPER(int, width, width)
+WINDOW_HELPER(int, height, height)
+WINDOW_HELPER(QPoint, pos, pos)
+WINDOW_HELPER(QSize, size, size)
+WINDOW_HELPER(int, screen, screen)
+WINDOW_HELPER(QRect, geometry, geometry)
+WINDOW_HELPER(QRect, expandedGeometry, visibleRect)
+WINDOW_HELPER(QRect, rect, rect)
+WINDOW_HELPER(int, desktop, desktop)
+WINDOW_HELPER(bool, isDesktop, isDesktop)
+WINDOW_HELPER(bool, isDock, isDock)
+WINDOW_HELPER(bool, isToolbar, isToolbar)
+WINDOW_HELPER(bool, isMenu, isMenu)
+WINDOW_HELPER(bool, isNormalWindow, isNormalWindow)
+WINDOW_HELPER(bool, isDialog, isDialog)
+WINDOW_HELPER(bool, isSplash, isSplash)
+WINDOW_HELPER(bool, isUtility, isUtility)
+WINDOW_HELPER(bool, isDropdownMenu, isDropdownMenu)
+WINDOW_HELPER(bool, isPopupMenu, isPopupMenu)
+WINDOW_HELPER(bool, isTooltip, isTooltip)
+WINDOW_HELPER(bool, isNotification, isNotification)
+WINDOW_HELPER(bool, isOnScreenDisplay, isOnScreenDisplay)
+WINDOW_HELPER(bool, isComboBox, isComboBox)
+WINDOW_HELPER(bool, isDNDIcon, isDNDIcon)
+WINDOW_HELPER(bool, isDeleted, isDeleted)
+WINDOW_HELPER(bool, hasOwnShape, shape)
+WINDOW_HELPER(QString, windowRole, windowRole)
+WINDOW_HELPER(QStringList, activities, activities)
+WINDOW_HELPER(bool, skipsCloseAnimation, skipsCloseAnimation)
+WINDOW_HELPER(KWayland::Server::SurfaceInterface *, surface, surface)
+
+//windowClass
+QString EffectWindowImpl::windowClass() const
+{
+    return toplevel->resourceName() + QLatin1Char(' ') + toplevel->resourceClass();
+}
+
+QRect EffectWindowImpl::contentsRect() const
+{
+    return QRect(pos(), size());
+}
+
+NET::WindowType EffectWindowImpl::windowType() const
+{
+    return toplevel->windowType();
+}
+
+#define WINDOW_HELPER_DEFAULT( rettype, prototype, propertyname, defaultValue ) \
+    rettype EffectWindowImpl::prototype ( ) const \
+    { \
+        auto client = qobject_cast<AbstractClient*>(toplevel); \
+        if (!client) { \
+            return defaultValue; \
+        } \
+        return client->propertyname(); \
+    }
+
+WINDOW_HELPER_DEFAULT(bool, isMinimized, isMinimized, false)
+WINDOW_HELPER_DEFAULT(bool, isMovable, isMovable, false)
+WINDOW_HELPER_DEFAULT(bool, isMovableAcrossScreens, isMovableAcrossScreens, false)
+WINDOW_HELPER_DEFAULT(QString, caption, caption, QString())
+WINDOW_HELPER_DEFAULT(bool, keepAbove, keepAbove, true)
+WINDOW_HELPER_DEFAULT(bool, keepBelow, keepBelow, false)
+WINDOW_HELPER_DEFAULT(bool, isModal, isModal, false)
+WINDOW_HELPER_DEFAULT(bool, isUserMove, isMove, false)
+WINDOW_HELPER_DEFAULT(bool, isUserResize, isResize, false)
+WINDOW_HELPER_DEFAULT(QRect, iconGeometry, iconGeometry, QRect())
+WINDOW_HELPER_DEFAULT(bool, isSpecialWindow, isSpecialWindow, true)
+WINDOW_HELPER_DEFAULT(bool, acceptsFocus, wantsInput, true) // We don't actually know...
+WINDOW_HELPER_DEFAULT(QIcon, icon, icon, QIcon())
+WINDOW_HELPER_DEFAULT(bool, isSkipSwitcher, skipSwitcher, false)
+WINDOW_HELPER_DEFAULT(bool, isCurrentTab, isCurrentTab, true)
+WINDOW_HELPER_DEFAULT(bool, decorationHasAlpha, decorationHasAlpha, false)
+WINDOW_HELPER_DEFAULT(bool, isFullScreen, isFullScreen, false)
+WINDOW_HELPER_DEFAULT(bool, isUnresponsive, unresponsive, false)
+
+QSize EffectWindowImpl::basicUnit() const
+{
+    if (auto client = qobject_cast<Client*>(toplevel)){
+        return client->basicUnit();
+    }
+    return QSize(1,1);
 }
 
 void EffectWindowImpl::setWindow(Toplevel* w)
@@ -1893,7 +1987,7 @@ EffectFrameImpl::~EffectFrameImpl()
     delete m_sceneFrame;
 }
 
-const QFont& EffectFrameImpl::font() const
+const QFont EffectFrameImpl::font() const
 {
     return m_font;
 }
@@ -1919,7 +2013,7 @@ void EffectFrameImpl::free()
     m_sceneFrame->free();
 }
 
-const QRect& EffectFrameImpl::geometry() const
+const QRect EffectFrameImpl::geometry() const
 {
     return m_geometry;
 }
@@ -1946,7 +2040,7 @@ void EffectFrameImpl::setGeometry(const QRect& geometry, bool force)
     free();
 }
 
-const QIcon& EffectFrameImpl::icon() const
+const QIcon EffectFrameImpl::icon() const
 {
     return m_icon;
 }
@@ -1963,7 +2057,7 @@ void EffectFrameImpl::setIcon(const QIcon& icon)
     m_sceneFrame->freeIconFrame();
 }
 
-const QSize& EffectFrameImpl::iconSize() const
+const QSize EffectFrameImpl::iconSize() const
 {
     return m_iconSize;
 }
@@ -2039,7 +2133,7 @@ void EffectFrameImpl::setPosition(const QPoint& point)
     setGeometry(geometry);
 }
 
-const QString& EffectFrameImpl::text() const
+const QString EffectFrameImpl::text() const
 {
     return m_text;
 }
