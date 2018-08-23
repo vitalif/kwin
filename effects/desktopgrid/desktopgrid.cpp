@@ -517,12 +517,12 @@ void DesktopGridEffect::windowInputMouseEvent(QEvent* e)
                 effects->moveWindow(windowMove, unscalePos(me->pos(), NULL) + windowMoveDiff, true, 1.0 / scale[screen]);
             }
             if (wasWindowMove) {
-                if (!effects->waylandDisplay() || (me->modifiers() & Qt::ShiftModifier)) {
-                    wasWindowCopy = false;
-                    effects->defineCursor(Qt::ClosedHandCursor);
-                } else {
+                if (!effects->waylandDisplay() || (me->modifiers() & Qt::ControlModifier)) {
                     wasWindowCopy = true;
                     effects->defineCursor(Qt::DragCopyCursor);
+                } else {
+                    wasWindowCopy = false;
+                    effects->defineCursor(Qt::ClosedHandCursor);
                 }
                 if (d != highlightedDesktop) {
                     effects->windowToDesktop(windowMove, d);   // Not true all desktop move
@@ -588,7 +588,7 @@ void DesktopGridEffect::windowInputMouseEvent(QEvent* e)
             isValidMove = true;
             dragStartPos = me->pos();
             sourceDesktop = posToDesktop(me->pos());
-            bool isDesktop = (me->modifiers() & Qt::ControlModifier);
+            bool isDesktop = (me->modifiers() & Qt::ShiftModifier);
             EffectWindow* w = isDesktop ? NULL : windowAt(me->pos());
             if (w != NULL)
                 isDesktop = w->isDesktop();
