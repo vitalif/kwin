@@ -227,11 +227,11 @@ void Workspace::init()
             if (kwinApp()->operationMode() == Application::OperationModeWaylandOnly ||
                 kwinApp()->operationMode() == Application::OperationModeXwayland) {
                 for (auto it = m_allClients.constBegin(); it != m_allClients.constEnd(); ++it) {
-                    if (!(*it)->isOnAllDesktops() && (*it)->desktops().count() == 1) {
-                        const VirtualDesktop *otherDesktop = (*it)->desktops().first();
-                        if (desktop == otherDesktop) {
-                            sendClientToDesktop(*it, qMin(desktop->x11DesktopNumber(), VirtualDesktopManager::self()->count()), true);
-                        }
+                    const bool needsMove = (*it)->desktops().count() == 1;
+                    (*it)->removeDesktop(desktop);
+                    if (needsMove) {
+                        const VirtualDesktop *otherDesktop = VirtualDesktopManager::self()->desktops().first();
+                        sendClientToDesktop(*it, qMin(desktop->x11DesktopNumber(), VirtualDesktopManager::self()->count()), true);
                     }
                 }
             //X11

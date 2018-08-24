@@ -492,7 +492,7 @@ void AbstractClient::setDesktop(int desktop)
     }
 
     int was_desk = AbstractClient::desktop();
-    const bool wasOnCurrentDesktop = isOnCurrentDesktop();
+    const bool wasOnCurrentDesktop = isOnCurrentDesktop() && was_desk >= 0;
 
     //can't check windowManagementInterface yet as it gets created only on first show
     //on x11 only one desktop at a time
@@ -503,7 +503,7 @@ void AbstractClient::setDesktop(int desktop)
         m_desktops.clear();
     } else {
         //if would become on all desktops, clear the list, as empty == on all desktops
-        if (static_cast<uint>(m_desktops.count()) == VirtualDesktopManager::self()->count() - 1) {
+        if (m_desktops.count() > 1 && static_cast<uint>(m_desktops.count()) == VirtualDesktopManager::self()->count() - 1) {
             m_desktops.clear();
         } else {
             m_desktops << virtualDesktop;
@@ -1001,7 +1001,7 @@ void AbstractClient::setupWindowManagementInterface()
     } else {
         workspace()->clientHidden(this);
     }
-    
+
     m_windowManagementInterface = w;
 }
 

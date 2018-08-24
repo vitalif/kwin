@@ -426,6 +426,9 @@ public:
     virtual QList<VirtualDesktop *> desktops() const {
         return m_desktops;
     }
+    void removeDesktop(VirtualDesktop *desktop) {
+        m_desktops.removeAll(desktop);
+    }
     QList<int> x11DesktopIds() const;
 
     void setMinimized(bool set);

@@ -547,17 +547,17 @@ void VirtualDesktopManager::setCount(uint count)
     const uint oldCount = m_desktops.count();
     //this explicit check makes it more readable
     if ((uint)m_desktops.count() > count) {
-        const auto desktopsToRemove = m_desktops.mid(count-1);
+        const auto desktopsToRemove = m_desktops.mid(count);
         m_desktops.resize(count);
-        int oldCurrent = current();
-        for (auto desktop : desktopsToRemove) {
-            emit desktopRemoved(desktop);
-            desktop->deleteLater();
-        }
-        int newCurrent = qMin(oldCurrent, m_desktops.count());
+        uint oldCurrent = current();
+        uint newCurrent = qMin(oldCurrent, count);
         m_current = m_desktops.at(newCurrent - 1);
         if (oldCurrent != newCurrent) {
             emit currentChanged(oldCurrent, newCurrent);
+        }
+        for (auto desktop : desktopsToRemove) {
+            emit desktopRemoved(desktop);
+            desktop->deleteLater();
         }
     } else {
         while (uint(m_desktops.count()) < count) {
@@ -746,7 +746,6 @@ void VirtualDesktopManager::save()
                 group.deleteEntry(QStringLiteral("Name_%1").arg(i));
             }
         }
-
         group.writeEntry(QStringLiteral("Id_%1").arg(i), m_desktops[i-1]->id());
     }
 
