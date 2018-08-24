@@ -995,13 +995,6 @@ void AbstractClient::setupWindowManagementInterface()
         }
     );
 
-    //set initial visibility
-    if (m_desktops.isEmpty() || m_desktops.contains(VirtualDesktopManager::self()->currentDesktop())) {
-        emit windowShown(this);
-    } else {
-        workspace()->clientHidden(this);
-    }
-
     m_windowManagementInterface = w;
 }
 
