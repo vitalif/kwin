@@ -188,7 +188,7 @@ class VirtualDesktopManagerDBusInterface : public QObject
      * The number of virtual desktops currently available.
      * The ids of the virtual desktops are in the range [1, VirtualDesktopManager::maximum()].
      **/
-    Q_PROPERTY(uint count READ count WRITE setCount NOTIFY countChanged)
+    Q_PROPERTY(uint count READ count NOTIFY countChanged)
     /**
      * The number of rows the virtual desktops will be laid out in
      **/
@@ -211,7 +211,6 @@ public:
     VirtualDesktopManagerDBusInterface(VirtualDesktopManager *parent);
     ~VirtualDesktopManagerDBusInterface() = default;
 
-    void setCount(uint count);
     uint count() const;
 
     void setRows(uint rows);

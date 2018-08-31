@@ -494,8 +494,7 @@ void AbstractClient::setDesktop(int desktop)
     int was_desk = AbstractClient::desktop();
     const bool wasOnCurrentDesktop = isOnCurrentDesktop() && was_desk >= 0;
 
-    //can't check windowManagementInterface yet as it gets created only on first show
-    //on x11 only one desktop at a time
+    //on x11 we can have only one desktop at a time
     if (kwinApp()->operationMode() == Application::OperationModeX11) {
         m_desktops.clear();
     }

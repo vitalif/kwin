@@ -293,6 +293,7 @@ public:
      * The difference with setCount is that setCount always adds new desktops at the end of the chain. The Id is automatically generated.
      * @param x11DesktopNumber number for the desktop. The desktop created will have an
      *           x11DesktopNumber guaranteed to be between 1 and numberOfDesktops().
+     * Existing desktops will eventually have their x11DesktopNumber increased.
      * @param name The name for the new desktop, if empty the default name will be used.
      * @returns the new VirtualDesktop, nullptr if we reached the maximum number of desktops
      */

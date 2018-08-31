@@ -450,15 +450,6 @@ VirtualDesktopManagerDBusInterface::VirtualDesktopManagerDBusInterface(VirtualDe
     );
 }
 
-void VirtualDesktopManagerDBusInterface::setCount(uint count)
-{
-    if (m_manager->count() == count) {
-        return;
-    }
-
-    m_manager->setCount(count);
-}
-
 uint VirtualDesktopManagerDBusInterface::count() const
 {
     return m_manager->count();

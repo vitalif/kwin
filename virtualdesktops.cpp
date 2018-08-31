@@ -671,7 +671,6 @@ void VirtualDesktopManager::load()
     KConfigGroup group(m_config, groupname);
     const int n = group.readEntry("Number", 1);
     setCount(n);
-    //Use kactivitymanagerdrc directly?
 
     for (int i = 1; i <= n; i++) {
         QString s = group.readEntry(QStringLiteral("Name_%1").arg(i), i18n("Desktop %1", i));
