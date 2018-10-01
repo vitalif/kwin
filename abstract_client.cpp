@@ -487,7 +487,9 @@ void AbstractClient::setDesktop(int desktop)
 
     VirtualDesktop *virtualDesktop = desktop == NET::OnAllDesktops ? nullptr : VirtualDesktopManager::self()->desktopForX11Id(desktop);
 
-    if (m_desktops.contains(virtualDesktop)) {
+    // Don't do anything if we're already there, if the desktop is already in desktops or if the desktop is NET::OnAllDesktops and m_desktops is already empty.
+    if (m_desktops.contains(virtualDesktop) ||
+        (desktop == NET::OnAllDesktops && m_desktops.isEmpty())) {
         return;
     }
 
