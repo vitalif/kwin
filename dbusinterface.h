@@ -173,7 +173,7 @@ private:
 //TODO: disable all of this in case of kiosk?
 
 struct DBusDesktopDataStruct {
-    uint x11DesktopNumber;
+    uint position;
     QString id;
     QString name;
 };

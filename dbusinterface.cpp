@@ -48,7 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataStruct &desk)
 {
     argument.beginStructure();
-    argument << desk.x11DesktopNumber;
+    argument << desk.position;
     argument << desk.id;
     argument << desk.name;
     argument.endStructure();
@@ -58,7 +58,7 @@ const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktop
 const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataStruct &desk)
 {
     argument.beginStructure();
-    argument >> desk.x11DesktopNumber;
+    argument >> desk.position;
     argument >> desk.id;
     argument >> desk.name;
     argument.endStructure();
@@ -408,14 +408,14 @@ VirtualDesktopManagerDBusInterface::VirtualDesktopManagerDBusInterface(VirtualDe
     for (auto *vd : m_manager->desktops()) {
         connect(vd, &VirtualDesktop::x11DesktopNumberChanged, this,
             [this, vd]() {
-                DBusDesktopDataStruct data{.x11DesktopNumber = vd->x11DesktopNumber(), .id = vd->id(), .name = vd->name()};
+                DBusDesktopDataStruct data{.position = vd->x11DesktopNumber() - 1, .id = vd->id(), .name = vd->name()};
                 emit desktopDataChanged(vd->id(), data);
                 emit desktopsChanged(desktops());
             }
         );
         connect(vd, &VirtualDesktop::nameChanged, this,
             [this, vd]() {
-                DBusDesktopDataStruct data{.x11DesktopNumber = vd->x11DesktopNumber(), .id = vd->id(), .name = vd->name()};
+                DBusDesktopDataStruct data{.position = vd->x11DesktopNumber() - 1, .id = vd->id(), .name = vd->name()};
                 emit desktopDataChanged(vd->id(), data);
                 emit desktopsChanged(desktops());
             }
@@ -425,19 +425,19 @@ VirtualDesktopManagerDBusInterface::VirtualDesktopManagerDBusInterface(VirtualDe
         [this](VirtualDesktop *vd) {
             connect(vd, &VirtualDesktop::x11DesktopNumberChanged, this,
                 [this, vd]() {
-                    DBusDesktopDataStruct data{.x11DesktopNumber = vd->x11DesktopNumber(), .id = vd->id(), .name = vd->name()};
+                    DBusDesktopDataStruct data{.position = vd->x11DesktopNumber() - 1, .id = vd->id(), .name = vd->name()};
                     emit desktopDataChanged(vd->id(), data);
                     emit desktopsChanged(desktops());
                 }
             );
             connect(vd, &VirtualDesktop::nameChanged, this,
                 [this, vd]() {
-                    DBusDesktopDataStruct data{.x11DesktopNumber = vd->x11DesktopNumber(), .id = vd->id(), .name = vd->name()};
+                    DBusDesktopDataStruct data{.position = vd->x11DesktopNumber() - 1, .id = vd->id(), .name = vd->name()};
                     emit desktopDataChanged(vd->id(), data);
                     emit desktopsChanged(desktops());
                 }
             );
-            DBusDesktopDataStruct data{.x11DesktopNumber = vd->x11DesktopNumber(), .id = vd->id(), .name = vd->name()};
+            DBusDesktopDataStruct data{.position = vd->x11DesktopNumber() - 1, .id = vd->id(), .name = vd->name()};
             emit desktopCreated(vd->id(), data);
             emit desktopsChanged(desktops());
         }
@@ -510,7 +510,7 @@ DBusDesktopDataVector VirtualDesktopManagerDBusInterface::desktops() const
     std::transform(desks.constBegin(), desks.constEnd(),
         std::back_inserter(desktopVect),
         [] (const VirtualDesktop *vd) {
-            return DBusDesktopDataStruct{.x11DesktopNumber = vd->x11DesktopNumber(), .id = vd->id(), .name = vd->name()};
+            return DBusDesktopDataStruct{.position = vd->x11DesktopNumber() - 1, .id = vd->id(), .name = vd->name()};
         }
     );
 
