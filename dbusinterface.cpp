@@ -43,55 +43,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QOpenGLContext>
 #include <QDBusServiceWatcher>
 
-
-// Marshall the DBusDesktopDataStruct data into a D-BUS argument
-const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataStruct &desk)
-{
-    argument.beginStructure();
-    argument << desk.position;
-    argument << desk.id;
-    argument << desk.name;
-    argument.endStructure();
-    return argument;
-}
-// Retrieve
-const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataStruct &desk)
-{
-    argument.beginStructure();
-    argument >> desk.position;
-    argument >> desk.id;
-    argument >> desk.name;
-    argument.endStructure();
-    return argument;
-}
-
-const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataVector &deskVector)
-{
-    argument.beginArray(qMetaTypeId<KWin::DBusDesktopDataStruct>());
-    for (int i = 0; i < deskVector.size(); ++i) {
-        argument << deskVector[i];
-    }
-    argument.endArray();
-    return argument;
-}
-
-const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataVector &deskVector)
-{
-    argument.beginArray();
-    deskVector.clear();
-
-    while (!argument.atEnd()) {
-        KWin::DBusDesktopDataStruct element;
-        argument >> element;
-        deskVector.append(element);
-    }
-
-    argument.endArray();
-
-    return argument;
-}
-
-
 namespace KWin
 {
 

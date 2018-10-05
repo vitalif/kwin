@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QObject>
 #include <QtDBus>
 
+#include "virtualdesktopsdbustypes.h"
+
 namespace KWin
 {
 
@@ -172,13 +174,6 @@ private:
 
 //TODO: disable all of this in case of kiosk?
 
-struct DBusDesktopDataStruct {
-    uint position;
-    QString id;
-    QString name;
-};
-typedef QVector<DBusDesktopDataStruct> DBusDesktopDataVector;
-
 class VirtualDesktopManagerDBusInterface : public QObject
 {
     Q_OBJECT
@@ -248,15 +243,5 @@ private:
 };
 
 } // namespace
-
-const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataStruct &desk);
-const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataStruct &desk);
-
-Q_DECLARE_METATYPE(KWin::DBusDesktopDataStruct)
-
-const QDBusArgument &operator<<(QDBusArgument &argument, const KWin::DBusDesktopDataVector &deskVector);
-const QDBusArgument &operator>>(const QDBusArgument &argument, KWin::DBusDesktopDataVector &deskVector);
-
-Q_DECLARE_METATYPE(KWin::DBusDesktopDataVector)
 
 #endif // KWIN_DBUS_INTERFACE_H

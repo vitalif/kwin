@@ -381,6 +381,7 @@ add_subdirectory(helpers)
 set(kwin_KDEINIT_SRCS
    workspace.cpp
    dbusinterface.cpp
+   virtualdesktopsdbustypes.cpp
    abstract_client.cpp
    client.cpp
    client_machine.cpp
