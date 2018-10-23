@@ -133,8 +133,10 @@ void TestVirtualDesktops::count()
     vds->setCurrent(1);
 
     QSignalSpy spy(vds, SIGNAL(countChanged(uint,uint)));
-    QSignalSpy desktopsRemoved(vds, SIGNAL(desktopsRemoved(uint)));
+    QSignalSpy desktopsRemoved(vds, SIGNAL(desktopRemoved(KWin::VirtualDesktop *)));
 
+    auto vdToRemove = vds->desktops().last();
+    
     QFETCH(uint, request);
     QFETCH(uint, result);
     QFETCH(bool, signal);
@@ -154,8 +156,7 @@ void TestVirtualDesktops::count()
     if (!desktopsRemoved.isEmpty()) {
         QList<QVariant> arguments = desktopsRemoved.takeFirst();
         QCOMPARE(arguments.count(), 1);
-        QCOMPARE(arguments.at(0).type(), QVariant::UInt);
-        QCOMPARE(arguments.at(0).toUInt(), s_countInitValue);
+        QCOMPARE(arguments.at(0).value<KWin::VirtualDesktop*>(), vdToRemove);
     }
 }
 
