@@ -327,13 +327,14 @@ public Q_SLOTS:
      * @link countChanged signal.
      *
      * In case the @link current desktop is on a desktop higher than the new count, the current desktop
-     * is changed to be the new desktop with highest id. In that situation the signal @link desktopsRemoved
+     * is changed to be the new desktop with highest id. In that situation the signal @link desktopRemoved
      * is emitted.
      * @param count The new number of desktops to use
      * @see count
      * @see maximum
      * @see countChanged
-     * @see desktopsRemoved
+     * @see desktopCreated
+     * @see desktopRemoved
      */
     void setCount(uint count);
     /**
