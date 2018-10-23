@@ -560,6 +560,20 @@ void AbstractClient::doSetDesktop(int desktop, int was_desk)
 
 void AbstractClient::unSetDesktop(int desktop)
 {
+    // Case in which we are on all desktops and gets asked to unset
+    if (desktop == NET::OnAllDesktops) {
+        if (m_desktops.isEmpty()) {
+            setOnAllDesktops(false);
+        }
+
+        return;
+    }
+
+    // Out of range
+    if (desktop < 1 || desktop > VirtualDesktopManager::self()->count()) {
+        return;
+    }
+
     VirtualDesktop *virtualDesktop = VirtualDesktopManager::self()->desktopForX11Id(desktop);
 
     m_desktops.removeAll(virtualDesktop);
