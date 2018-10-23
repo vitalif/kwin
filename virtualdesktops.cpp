@@ -688,7 +688,7 @@ void VirtualDesktopManager::load()
             }
             m_desktops[i-1]->setId(sId.toUtf8().data());
         } else {
-            Q_ASSERT(sId.isEmpty() || m_desktops[i-1]->id() == s.toUtf8().data());
+            Q_ASSERT(sId.isEmpty() || m_desktops[i-1]->id() == sId.toUtf8().data());
         }
 
         // TODO: update desktop focus chain, why?
