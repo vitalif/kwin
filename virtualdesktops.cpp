@@ -679,15 +679,16 @@ void VirtualDesktopManager::load()
         }
         m_desktops[i-1]->setName(s.toUtf8().data());
 
-        s = group.readEntry(QStringLiteral("Id_%1").arg(i), QString());
-        if (s.isEmpty()) {
-            s = QUuid::createUuid().toString();
-        }
+        QString sId = group.readEntry(QStringLiteral("Id_%1").arg(i), QString());
+
         //load gets called 2 times, see workspace.cpp line 416 and BUG 385260
         if (m_desktops[i-1]->id().isEmpty()) {
-            m_desktops[i-1]->setId(s.toUtf8().data());
+            if (sId.isEmpty()) {
+                sId = QUuid::createUuid().toString();
+            }
+            m_desktops[i-1]->setId(sId.toUtf8().data());
         } else {
-            Q_ASSERT(m_desktops[i-1]->id() == s.toUtf8().data());
+            Q_ASSERT(sId.isEmpty() || m_desktops[i-1]->id() == s.toUtf8().data());
         }
 
         // TODO: update desktop focus chain, why?
