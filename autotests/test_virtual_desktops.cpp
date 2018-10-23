@@ -130,6 +130,7 @@ void TestVirtualDesktops::count()
     QCOMPARE(vds->count(), (uint)0);
     // start with a useful desktop count
     vds->setCount(s_countInitValue);
+    vds->setCurrent(1);
 
     QSignalSpy spy(vds, SIGNAL(countChanged(uint,uint)));
     QSignalSpy desktopsRemoved(vds, SIGNAL(desktopsRemoved(uint)));
