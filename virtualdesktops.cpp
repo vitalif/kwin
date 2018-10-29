@@ -549,11 +549,13 @@ void VirtualDesktopManager::setCount(uint count)
     if ((uint)m_desktops.count() > count) {
         const auto desktopsToRemove = m_desktops.mid(count);
         m_desktops.resize(count);
-        uint oldCurrent = current();
-        uint newCurrent = qMin(oldCurrent, count);
-        m_current = m_desktops.at(newCurrent - 1);
-        if (oldCurrent != newCurrent) {
-            emit currentChanged(oldCurrent, newCurrent);
+        if (m_current) {
+            uint oldCurrent = current();
+            uint newCurrent = qMin(oldCurrent, count);
+            m_current = m_desktops.at(newCurrent - 1);
+            if (oldCurrent != newCurrent) {
+                emit currentChanged(oldCurrent, newCurrent);
+            }
         }
         for (auto desktop : desktopsToRemove) {
             emit desktopRemoved(desktop);
