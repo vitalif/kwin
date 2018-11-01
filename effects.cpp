@@ -1724,6 +1724,13 @@ WINDOW_HELPER(QString, windowRole, windowRole)
 WINDOW_HELPER(QStringList, activities, activities)
 WINDOW_HELPER(bool, skipsCloseAnimation, skipsCloseAnimation)
 WINDOW_HELPER(KWayland::Server::SurfaceInterface *, surface, surface)
+WINDOW_HELPER(QString, caption, caption);
+WINDOW_HELPER(bool, isMinimized, isMinimized)
+WINDOW_HELPER(bool, keepAbove, keepAbove)
+WINDOW_HELPER(bool, keepBelow, keepBelow)
+WINDOW_HELPER(bool, isModal, isModal)
+WINDOW_HELPER(bool, isFullScreen, isFullScreen)
+WINDOW_HELPER(bool, isCurrentTab, isCurrentTab)
 
 //windowClass
 QString EffectWindowImpl::windowClass() const
@@ -1751,13 +1758,8 @@ NET::WindowType EffectWindowImpl::windowType() const
         return client->propertyname(); \
     }
 
-WINDOW_HELPER_DEFAULT(bool, isMinimized, isMinimized, false)
 WINDOW_HELPER_DEFAULT(bool, isMovable, isMovable, false)
 WINDOW_HELPER_DEFAULT(bool, isMovableAcrossScreens, isMovableAcrossScreens, false)
-WINDOW_HELPER_DEFAULT(QString, caption, caption, QString())
-WINDOW_HELPER_DEFAULT(bool, keepAbove, keepAbove, true)
-WINDOW_HELPER_DEFAULT(bool, keepBelow, keepBelow, false)
-WINDOW_HELPER_DEFAULT(bool, isModal, isModal, false)
 WINDOW_HELPER_DEFAULT(bool, isUserMove, isMove, false)
 WINDOW_HELPER_DEFAULT(bool, isUserResize, isResize, false)
 WINDOW_HELPER_DEFAULT(QRect, iconGeometry, iconGeometry, QRect())
@@ -1765,9 +1767,7 @@ WINDOW_HELPER_DEFAULT(bool, isSpecialWindow, isSpecialWindow, true)
 WINDOW_HELPER_DEFAULT(bool, acceptsFocus, wantsInput, true) // We don't actually know...
 WINDOW_HELPER_DEFAULT(QIcon, icon, icon, QIcon())
 WINDOW_HELPER_DEFAULT(bool, isSkipSwitcher, skipSwitcher, false)
-WINDOW_HELPER_DEFAULT(bool, isCurrentTab, isCurrentTab, true)
 WINDOW_HELPER_DEFAULT(bool, decorationHasAlpha, decorationHasAlpha, false)
-WINDOW_HELPER_DEFAULT(bool, isFullScreen, isFullScreen, false)
 WINDOW_HELPER_DEFAULT(bool, isUnresponsive, unresponsive, false)
 
 QSize EffectWindowImpl::basicUnit() const

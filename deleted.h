@@ -37,13 +37,6 @@ class KWIN_EXPORT Deleted
     : public Toplevel
 {
     Q_OBJECT
-    Q_PROPERTY(bool minimized READ isMinimized)
-    Q_PROPERTY(bool modal READ isModal)
-    Q_PROPERTY(bool fullScreen READ isFullScreen CONSTANT)
-    Q_PROPERTY(bool isCurrentTab READ isCurrentTab)
-    Q_PROPERTY(bool keepAbove READ keepAbove CONSTANT)
-    Q_PROPERTY(bool keepBelow READ keepBelow CONSTANT)
-    Q_PROPERTY(QString caption READ caption CONSTANT)
 public:
     static Deleted* create(Toplevel* c);
     // used by effects to keep the window around for e.g. fadeout effects when it's destroyed
@@ -68,10 +61,10 @@ public:
     virtual Layer layer() const {
         return m_layer;
     }
-    bool isMinimized() const {
+    bool isMinimized() const override {
         return m_minimized;
     }
-    bool isModal() const {
+    bool isModal() const override {
         return m_modal;
     }
     QList<AbstractClient*> mainClients() const {
@@ -88,20 +81,20 @@ public:
         return m_decorationRenderer;
     }
 
-    bool isFullScreen() const {
+    bool isFullScreen() const override {
         return m_fullscreen;
     }
 
-    bool isCurrentTab() const {
+    bool isCurrentTab() const override {
         return m_wasCurrentTab;
     }
-    bool keepAbove() const {
+    bool keepAbove() const override {
         return m_keepAbove;
     }
-    bool keepBelow() const {
+    bool keepBelow() const override {
         return m_keepBelow;
     }
-    QString caption() const {
+    QString caption() const override {
         return m_caption;
     }
 

@@ -457,6 +457,26 @@ public:
      **/
     virtual bool isPopupWindow() const;
 
+    /**
+     * @returns The caption consisting of @link{captionNormal} and @link{captionSuffix}
+     * @see captionNormal
+     * @see captionSuffix
+    **/
+    virtual QString caption() const;
+
+    virtual bool isMinimized() const;
+    virtual bool isModal() const;
+    virtual bool isFullScreen() const;
+    virtual bool keepAbove() const;
+    virtual bool keepBelow() const;
+    /*
+    *   When a click is done in the decoration and it calls the group
+    *   to change the visible client it starts to move-resize the new
+    *   client, this function stops it.
+    */
+    virtual bool isCurrentTab() const;
+
+
 Q_SIGNALS:
     void opacityChanged(KWin::Toplevel* toplevel, qreal oldOpacity);
     void damaged(KWin::Toplevel* toplevel, const QRect& damage);
@@ -466,6 +486,7 @@ Q_SIGNALS:
     void windowClosed(KWin::Toplevel* toplevel, KWin::Deleted* deleted);
     void windowShown(KWin::Toplevel* toplevel);
     void windowHidden(KWin::Toplevel* toplevel);
+    void captionChanged();
     /**
      * Signal emitted when the window's shape state changed. That is if it did not have a shape
      * and received one or if the shape was withdrawn. Think of Chromium enabling/disabling KWin's

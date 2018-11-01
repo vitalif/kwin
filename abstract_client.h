@@ -333,11 +333,11 @@ public:
      **/
     void setActive(bool);
 
-    bool keepAbove() const {
+    bool keepAbove() const override {
         return m_keepAbove;
     }
     void setKeepAbove(bool);
-    bool keepBelow() const {
+    bool keepBelow() const override {
         return m_keepBelow;
     }
     void setKeepBelow(bool);
@@ -361,7 +361,7 @@ public:
      * @see captionNormal
      * @see captionSuffix
      **/
-    QString caption() const;
+    QString caption() const override final;
     /**
      * @returns The caption as set by the AbstractClient without any suffix.
      * @see caption
@@ -382,7 +382,6 @@ public:
     virtual void hideClient(bool hide) = 0;
     bool isFullScreenable() const;
     bool isFullScreenable(bool fullscreen_hack) const;
-    virtual bool isFullScreen() const = 0;
     // TODO: remove boolean trap
     virtual AbstractClient *findModal(bool allow_itself = false) = 0;
     virtual bool isTransient() const;
@@ -432,7 +431,7 @@ public:
     */
     void minimize(bool avoid_animation = false);
     void unminimize(bool avoid_animation = false);
-    bool isMinimized() const {
+    bool isMinimized() const override {
         return m_minimized;
     }
     virtual void setFullScreen(bool set, bool user = true) = 0;
@@ -458,12 +457,7 @@ public:
     void setTabGroup(TabGroup* group);
     virtual void setClientShown(bool shown);
     Q_INVOKABLE bool untab(const QRect &toGeometry = QRect(), bool clientRemoved = false);
-    /*
-    *   When a click is done in the decoration and it calls the group
-    *   to change the visible client it starts to move-resize the new
-    *   client, this function stops it.
-    */
-    bool isCurrentTab() const;
+    bool isCurrentTab() const override;
     virtual QRect geometryRestore() const = 0;
     /**
      * The currently applied maximize mode
@@ -628,8 +622,7 @@ public:
     virtual bool hasStrut() const;
 
     void setModal(bool modal);
-    bool isModal() const;
-
+    bool isModal() const override;
     /**
      * Determines the mouse command for the given @p button in the current state.
      *
@@ -763,7 +756,6 @@ Q_SIGNALS:
     void clientUnminimized(KWin::AbstractClient* client, bool animate);
     void paletteChanged(const QPalette &p);
     void colorSchemeChanged();
-    void captionChanged();
     void clientMaximizedStateChanged(KWin::AbstractClient*, MaximizeMode);
     void clientMaximizedStateChanged(KWin::AbstractClient* c, bool h, bool v);
     void transientChanged();

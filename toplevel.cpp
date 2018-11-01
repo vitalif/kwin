@@ -553,5 +553,41 @@ QRect Toplevel::inputGeometry() const
     return geometry();
 }
 
+QString Toplevel::caption() const
+{
+    return QString();
+}
+
+bool Toplevel::isMinimized() const
+{
+    return false;
+}
+
+bool Toplevel::isModal() const
+{
+    return false;
+}
+
+bool Toplevel::isCurrentTab() const
+{
+    return false;
+}
+
+bool Toplevel::isFullScreen() const
+{
+    return false;
+}
+
+bool Toplevel::keepAbove() const
+{
+    return false;
+}
+
+bool Toplevel::keepBelow() const
+{
+    return false;
+}
+
+
 } // namespace
 
