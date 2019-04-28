@@ -47,6 +47,7 @@ enum class BuiltInEffect
     FlipSwitch,
     Glide,
     HighlightWindow,
+    ICC,
     Invert,
     Kscreen,
     LookingGlass,
