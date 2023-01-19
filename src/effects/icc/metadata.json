@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Category": "Accessibility",
+        "Description": "ICC Color Conversion",
+        "EnabledByDefault": false,
+        "Id": "icc",
+        "License": "GPL",
+        "Name": "ICC"
+    },
+    "X-KDE-ConfigModule": "kwin_icc_config",
+    "org.kde.kwin.effect": {
+    }
+}
