@@ -20,35 +20,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "icc.h"
 #include "iccconfig.h"
-#include "kwinglplatform.h"
+#include <kwinglplatform.h>
+#include <kwinglutils.h>
 
-#include "lcms2.h"
+#include <lcms2.h>
 
 #include <QAction>
 #include <QFile>
-#include <KGlobalAccel>
 #include <KLocalizedString>
 #include <QStandardPaths>
 
+Q_LOGGING_CATEGORY(KWIN_ICC, "kwin_effect_icc", QtWarningMsg)
+
 static const int LUT_POINTS = 64;
+
+static void ensureResources()
+{
+    // Must initialize resources manually because the effect is a static lib.
+    Q_INIT_RESOURCE(icc);
+}
 
 namespace KWin
 {
 
 ICCEffect::ICCEffect()
-    :   m_valid(false),
-        m_shader(NULL),
-        m_texture(0),
-        m_clut(NULL)
+    : m_valid(false)
+    , m_texture(0)
+    , m_clut(NULL)
 {
     initConfig<ICCConfig>();
     reconfigure(ReconfigureAll);
+
+    connect(effects, &EffectsHandler::windowAdded, this, &ICCEffect::slotWindowAdded);
 }
 
 ICCEffect::~ICCEffect()
 {
-    if (m_shader)
-        delete m_shader;
     if (m_clut)
         delete[] m_clut;
     if (m_texture != 0)
@@ -57,7 +64,7 @@ ICCEffect::~ICCEffect()
 
 bool ICCEffect::supported()
 {
-    return effects->compositingType() == OpenGL2Compositing;
+    return effects->isOpenGLCompositing();
 }
 
 void ICCEffect::reconfigure(ReconfigureFlags flags)
@@ -71,27 +78,38 @@ void ICCEffect::reconfigure(ReconfigureFlags flags)
 
     loadData();
 
+    for (KWin::EffectWindow *window : effects->stackingOrder())
+        slotWindowAdded(window);
+
     effects->addRepaintFull();
+}
+
+void ICCEffect::slotWindowAdded(KWin::EffectWindow *w)
+{
+    if (m_valid) {
+        redirect(w);
+        setShader(w, m_shader.get());
+    }
 }
 
 bool ICCEffect::loadData()
 {
     m_valid = false;
 
-    if (m_shader)
-        delete m_shader;
     if (m_clut)
         delete[] m_clut;
     if (m_texture != 0)
         glDeleteTextures(1, &m_texture);
 
+    ensureResources();
+
     m_shader = ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture, QString(), QStringLiteral(":/effects/icc/shaders/icc.frag"));
     if (!m_shader->isValid())
     {
-        qCCritical(KWINEFFECTS) << "The shader failed to load!";
+        qCCritical(KWIN_ICC) << "The shader failed to load!";
         return false;
     }
-    ShaderManager::instance()->pushShader(m_shader);
+    ShaderManager::instance()->pushShader(m_shader.get());
     m_shader->setUniform("clut", 3); // GL_TEXTURE3
     ShaderManager::instance()->popShader();
 
@@ -194,10 +212,14 @@ GLuint ICCEffect::setupCCTexture(uint8_t *clut)
         return 0;
     }
 
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_3D, texture);
+    glActiveTexture(GL_TEXTURE0);
+
     return texture;
 }
 
-void ICCEffect::drawWindow(EffectWindow* w, int mask, const QRegion &region, WindowPaintData& data)
+/*void ICCEffect::drawWindow(EffectWindow* w, int mask, const QRegion &region, WindowPaintData& data)
 {
     if (m_valid)
     {
@@ -205,8 +227,7 @@ void ICCEffect::drawWindow(EffectWindow* w, int mask, const QRegion &region, Win
         glBindTexture(GL_TEXTURE_3D, m_texture);
         glActiveTexture(GL_TEXTURE0);
         ShaderManager *shaderManager = ShaderManager::instance();
-        shaderManager->pushShader(m_shader);
-        data.shader = m_shader;
+        shaderManager->pushShader(m_shader.get());
     }
 
     effects->drawWindow(w, mask, region, data);
@@ -217,7 +238,7 @@ void ICCEffect::drawWindow(EffectWindow* w, int mask, const QRegion &region, Win
     }
 }
 
-void ICCEffect::paintEffectFrame(KWin::EffectFrame* frame, const QRegion &region, double opacity, double frameOpacity)
+/*void ICCEffect::paintEffectFrame(KWin::EffectFrame* frame, const QRegion &region, double opacity, double frameOpacity)
 {
     if (m_valid)
     {
@@ -232,11 +253,16 @@ void ICCEffect::paintEffectFrame(KWin::EffectFrame* frame, const QRegion &region
     {
         effects->paintEffectFrame(frame, region, opacity, frameOpacity);
     }
-}
+}*/
 
 bool ICCEffect::isActive() const
 {
     return m_valid;
+}
+
+bool ICCEffect::provides(Feature f)
+{
+    return false;
 }
 
 } // namespace

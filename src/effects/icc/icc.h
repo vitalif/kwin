@@ -21,8 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KWIN_ICC_H
 #define KWIN_ICC_H
 
-#include <kwineffects.h>
 #include "kwinglutils.h"
+#include <kwinoffscreeneffect.h>
 
 namespace KWin
 {
@@ -33,24 +33,25 @@ class GLShader;
  * Applies cLUT (32x32x32 RGB LUT)-based color correction to the whole desktop
  * cLUT is generated from a pair of ICC profiles using LCMS2
  */
-class ICCEffect
-    : public Effect
+class ICCEffect : public OffscreenEffect
 {
     Q_OBJECT
 public:
     ICCEffect();
-    ~ICCEffect();
+    ~ICCEffect() override;
 
     void reconfigure(ReconfigureFlags flags) override;
-    void drawWindow(EffectWindow* w, int mask, const QRegion &region, WindowPaintData& data) override;
-    void paintEffectFrame(KWin::EffectFrame* frame, const QRegion &region, double opacity, double frameOpacity) override;
+    // void drawWindow(EffectWindow *w, int mask, const QRegion &region, WindowPaintData &data) override;
+    // void paintEffectFrame(KWin::EffectFrame* frame, const QRegion &region, double opacity, double frameOpacity) override;
     bool isActive() const override;
+    bool provides(Feature) override;
 
     int requestedEffectChainPosition() const override;
 
     static bool supported();
 
 public Q_SLOTS:
+    void slotWindowAdded(KWin::EffectWindow *w);
 
 protected:
     bool loadData();
@@ -60,7 +61,7 @@ private:
     bool m_valid;
     QString m_sourceICC;
     QString m_targetICC;
-    GLShader* m_shader;
+    std::unique_ptr<GLShader> m_shader;
     GLuint m_texture;
     uint8_t *m_clut;
 

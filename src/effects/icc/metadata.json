@@ -2,6 +2,7 @@
     "KPlugin": {
         "Category": "Accessibility",
         "Description": "ICC Color Conversion",
+        "Description[ru]": "ICC цветокоррекция",
         "EnabledByDefault": false,
         "Id": "icc",
         "License": "GPL",

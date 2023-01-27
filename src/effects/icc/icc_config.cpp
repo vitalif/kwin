@@ -20,27 +20,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "icc_config.h"
 #include <kwineffects_interface.h>
-#include "iccconfig.h"
 #include <config-kwin.h>
+
+#include "iccconfig.h"
 
 #include <QAction>
 
 #include <KLocalizedString>
-#include <KActionCollection>
-#include <KAboutData>
 #include <KPluginFactory>
 
 #include <QVBoxLayout>
 
-K_PLUGIN_FACTORY_WITH_JSON(ICCEffectConfigFactory,
+K_PLUGIN_CLASS(KWin::ICCEffectConfig)
+/*K_PLUGIN_FACTORY_WITH_JSON(ICCEffectConfigFactory,
                            "icc_config.json",
-                           registerPlugin<KWin::ICCEffectConfig>();)
+                           registerPlugin<KWin::ICCEffectConfig>();)*/
 
 namespace KWin
 {
 
-ICCEffectConfig::ICCEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(KAboutData::pluginData(QStringLiteral("icc")), parent, args)
+ICCEffectConfig::ICCEffectConfig(QWidget *parent, const QVariantList &args)
+    : KCModule(parent, args)
 {
     ui.setupUi(this);
     ICCConfig::instance(KWIN_CONFIG);
@@ -57,14 +57,14 @@ void ICCEffectConfig::load()
 {
     KCModule::load();
 
-    emit changed(false);
+    Q_EMIT changed(false);
 }
 
 void ICCEffectConfig::save()
 {
     KCModule::save();
 
-    emit changed(false);
+    Q_EMIT changed(false);
     OrgKdeKwinEffectsInterface interface(QStringLiteral("org.kde.KWin"),
                                          QStringLiteral("/Effects"),
                                          QDBusConnection::sessionBus());
@@ -73,7 +73,7 @@ void ICCEffectConfig::save()
 
 void ICCEffectConfig::defaults()
 {
-    emit changed(true);
+    Q_EMIT changed(true);
 }
 
 
