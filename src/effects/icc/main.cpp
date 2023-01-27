@@ -3,8 +3,9 @@
 namespace KWin
 {
 
-KWIN_EFFECT_FACTORY(ICCEffect,
-                    "metadata.json.stripped")
+KWIN_EFFECT_FACTORY_SUPPORTED(ICCEffect,
+                              "metadata.json.stripped",
+                              return ICCEffect::supported();)
 
 } // namespace KWin
 

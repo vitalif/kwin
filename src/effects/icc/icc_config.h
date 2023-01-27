@@ -21,8 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KWIN_ICC_CONFIG_H
 #define KWIN_ICC_CONFIG_H
 
-#include <kcmodule.h>
 #include "ui_icc_config.h"
+#include <KCModule>
 
 namespace KWin
 {
@@ -35,9 +35,9 @@ public:
     ~ICCEffectConfig();
 
 public Q_SLOTS:
-    virtual void save();
-    virtual void load();
-    virtual void defaults();
+    virtual void save() override;
+    virtual void load() override;
+    virtual void defaults() override;
 
 private:
     ::Ui::ICCEffectConfig ui;
